@@ -37,6 +37,7 @@ public class Farm {
         this.harvest = new LinkedHashMap<>();
         this.scan = new Scanner(System.in);
         this.day = Localization.lang.t("game.day");
+        this.weather = Weather.SUNNY;
         start();
     }
 
@@ -45,6 +46,7 @@ public class Farm {
         plant();
         do {
             print(day + " " + days);
+            weather();
             update();
             if(!equals(cmd, "skip")) {
                 harvest();
@@ -105,6 +107,11 @@ public class Farm {
                     entry.getKey().getName(), entry.getValue()));
         }
         update();
+    }
+
+    private void weather() {
+        weather = Weather.getRandomWeather();
+        print(weather.message());
     }
 
     private void plant() {

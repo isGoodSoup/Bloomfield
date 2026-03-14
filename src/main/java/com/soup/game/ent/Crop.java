@@ -1,6 +1,7 @@
 package com.soup.game.ent;
 
 import com.soup.game.enums.CropID;
+import com.soup.game.enums.Weather;
 import com.soup.game.intf.Entity;
 
 @Entity(type = "crop")
@@ -19,7 +20,9 @@ public final class Crop {
     public void grow() {
         if(!canHarvest) {
             days++;
-            if(days == daysToMature) canHarvest = true;
+            if(days == daysToMature) {
+                canHarvest = true;
+            }
         }
     }
 
