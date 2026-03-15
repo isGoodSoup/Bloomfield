@@ -83,7 +83,7 @@ public final class Crop {
     public Hydration getHydration() {
         return hydration;
     }
-    public void setHydration(Hydration hydration) {
+    public void water(Hydration hydration) {
         this.hydration = hydration;
     }
 }

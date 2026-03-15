@@ -1,9 +1,9 @@
 package com.soup.game.core;
 
 import com.soup.game.ent.Crop;
-import com.soup.game.ent.Water;
 import com.soup.game.enums.CropID;
 import com.soup.game.enums.GrowthStage;
+import com.soup.game.enums.Hydration;
 import com.soup.game.enums.Weather;
 import com.soup.game.intf.Item;
 import com.soup.game.service.Inventory;
@@ -26,6 +26,7 @@ public class Farm {
     private int[][] indices;
     private int SIZE = 16;
     private int coin;
+    private int water;
     private int days;
     private int dryDay;
 
@@ -88,6 +89,7 @@ public class Farm {
         commands.put(".", this::redo);
         commands.put("harvest", this::harvest);
         commands.put("replant", () -> this.plant(false));
+        commands.put("water", this::irrigate);
         commands.put("show", this::update);
         commands.put("inv", this::showInventory);
         commands.put("sell", this::sellCrops);
@@ -162,6 +164,30 @@ public class Farm {
         }
     }
 
+    private void updateHydration() {
+        for(int[] pos : index()) {
+            Crop crop = crops[pos[0]][pos[1]];
+            Hydration hydration = crop.getHydration();
+            switch(hydration) {
+                case NONE -> crop.wither();
+                case LOW -> crop.water(Hydration.NONE);
+                case MID -> crop.water(Hydration.LOW);
+                case HIGH -> crop.water(Hydration.MID);
+                case MAX -> crop.water(Hydration.HIGH);
+            }
+        }
+    }
+
+    private void irrigate() {
+        if(water > 0) {
+            for(int[] pos : index()) {
+                Crop crop = crops[pos[0]][pos[1]];
+                crop.water(Hydration.HIGH);
+                water -= 1;
+            }
+        }
+    }
+
     private void season() {
         // TODO seasons logic
     }
@@ -192,6 +218,7 @@ public class Farm {
         println(Localization.lang.t("game.sleep"));
         println(Localization.lang.t("game.coin", coin));
         days++;
+        updateHydration();
         cmd = "skip";
     }
 
@@ -281,7 +308,7 @@ public class Farm {
                     }
 
                     coin -= cost;
-                    inventory.add(new Water(Localization.lang.t("market.water"), cost));
+                    water += 4;
                     println(Localization.lang.t("market.bought", "market.water", coin));
                 }
                 case 4 -> isBuying = false;
