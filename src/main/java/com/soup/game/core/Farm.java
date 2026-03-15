@@ -84,7 +84,6 @@ public class Farm {
 
     private void addCommands() {
         commands.put(".", this::redo);
-        commands.put("harvest", this::harvest);
         commands.put("replant", this::plant);
         commands.put("show", this::update);
         commands.put("inv", this::showInventory);
