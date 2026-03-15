@@ -13,8 +13,9 @@ public class ASCIILogo {
                 String line;
                 while((line = reader.readLine()) != null) {
                     System.out.println(line);
-                    Thread.sleep(800);
+                    Thread.sleep(100);
                 }
+                System.out.println();
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
