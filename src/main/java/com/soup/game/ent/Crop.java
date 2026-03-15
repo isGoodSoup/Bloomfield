@@ -10,6 +10,7 @@ public final class Crop {
     private GrowthStage stage;
     private int daysToMature;
     private int days;
+    private boolean wasHarvested;
     private boolean canHarvest;
     private boolean canRegrow;
 
@@ -39,8 +40,29 @@ public final class Crop {
         daysToMature = -1;
     }
 
+    public int getValue() {
+        return id.getValue();
+    }
+
+    public String getName() {
+        return id.getName();
+    }
+
     public boolean canHarvest() {
         return canHarvest;
+    }
+    public boolean wasHarvestedToday() {
+        return wasHarvested;
+    }
+
+    @SuppressWarnings({"ConstantValue", "UnusedReturnValue"})
+    public boolean harvested() {
+        wasHarvested = true;
+        return wasHarvested;
+    }
+
+    public void resetHarvest() {
+        wasHarvested = false;
     }
     public boolean canRegrow() {
         return canRegrow;
