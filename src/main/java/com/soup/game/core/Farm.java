@@ -128,12 +128,12 @@ public class Farm {
 
     private void harvest() {
         List<Item> todayHarvest = new ArrayList<>();
-        for (int[] pos : index()) {
+        for(int[] pos : index()) {
             Crop crop = crops[pos[0]][pos[1]];
-            if (crop != null && crop.canHarvest()) {
+            if(crop != null && crop.canHarvest()) {
                 todayHarvest.add(crop.getId());
                 crop.harvested();
-                if (crop.getId().regrows()) {
+                if(crop.getId().regrows()) {
                     crop.setStage(GrowthStage.SEED);
                 } else {
                     crops[pos[0]][pos[1]] = null;
@@ -176,9 +176,9 @@ public class Farm {
 
     @SuppressWarnings("SimplifiableBooleanExpression")
     private void plant(boolean isFirstTime) {
-        for (int row = 0; row < SIZE; row++) {
-            for (int col = 0; col < SIZE; col++) {
-                if (crops[row][col] == null) {
+        for(int row = 0; row < SIZE; row++) {
+            for(int col = 0; col < SIZE; col++) {
+                if(crops[row][col] == null) {
                     if(((Math.random() < 0.5) && isFirstTime) || !isFirstTime) {
                         crops[row][col] = new Crop(CropID.random());
                     }
@@ -198,7 +198,7 @@ public class Farm {
     private void sellCrops() {
         int totalCoin = 0;
 
-        for (Map.Entry<Item, Integer> entry : new LinkedHashMap<>(inventory.getAll()).entrySet()) {
+        for(Map.Entry<Item, Integer> entry : new LinkedHashMap<>(inventory.getAll()).entrySet()) {
             Item item = entry.getKey();
             if(item instanceof CropID c) {
                 int quantity = entry.getValue();
@@ -290,12 +290,12 @@ public class Farm {
     }
 
     private void showInventory() {
-        if (inventory.isEmpty()) {
+        if(inventory.isEmpty()) {
             println(Localization.lang.t("game.inventory.empty"));
             return;
         }
 
-        for (Map.Entry<Item, Integer> entry : inventory.getAll().entrySet()) {
+        for(Map.Entry<Item, Integer> entry : inventory.getAll().entrySet()) {
             println(entry.getKey().getName() + " x" + entry.getValue());
         }
     }
