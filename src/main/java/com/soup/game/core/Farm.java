@@ -20,7 +20,7 @@ public class Farm {
     private final String day;
     private final String title;
     private final Scanner scan;
-    private Upgrades upgrades;
+    private final List<Upgrades> upgrades;
 
     private int[][] indices;
     private int SIZE = 4;
@@ -50,7 +50,8 @@ public class Farm {
         this.scan = new Scanner(System.in);
         this.day = Localization.lang.t("game.day");
         this.weather = Weather.SUNNY;
-        this.upgrades = Upgrades.NULL;
+        this.upgrades = new ArrayList<>();
+        upgrades.add(Upgrades.NULL);
         start();
     }
 
@@ -133,6 +134,24 @@ public class Farm {
     }
 
     private void harvest(String[] args) {
+        if(args.length < 3 && upgrades.contains(Upgrades.HARVEST)) {
+            for(int[] pos : index()) {
+                int row = pos[1];
+                int col = pos[2];
+                Crop crop = crops[row][col];
+                inventory.add(crop.getId());
+                crop.harvested();
+                if(crop.getId().regrows()) {
+                    crop.setStage(GrowthStage.SEED);
+                } else {
+                    crops[row][col] = null;
+                }
+                println(Localization.lang.t("game.yields",
+                        inventory.getQuantity(crop.getId())));
+            }
+            return;
+        }
+
         if(args.length < 3) {
             println(Localization.lang.t("game.harvest.usage"));
             return;
@@ -245,6 +264,13 @@ public class Farm {
     }
 
     private void plant(String[] args) {
+        if(args.length < 3 && upgrades.contains(Upgrades.PLANT)) {
+            for(int[] pos : index()) {
+                crops[pos[1]][pos[2]] = new Crop(CropID.random());
+            }
+            return;
+        }
+
         if(args.length < 3) {
             println(Localization.lang.t("game.plant.usage"));
             return;
@@ -274,7 +300,6 @@ public class Farm {
     }
 
     private void sleep(String[] args) {
-        harvest(args);
         println(Localization.lang.t("game.sleep"));
         println(Localization.lang.t("game.coin", coin));
         days++;
@@ -346,14 +371,24 @@ public class Farm {
                     }
 
                     int oldSize = SIZE;
-                    SIZE += increase;
                     coin -= cost;
+                    SIZE += increase;
                     int newPlots = SIZE * SIZE - oldSize * oldSize;
                     resize();
                     println(Localization.lang.t("market.bought.plot",
                             newPlots, coin));
                 }
-                case 2 -> {}
+                case 2 -> {
+                    int cost = 0;
+                    for(Map.Entry<Integer, String> entries : market.entrySet()) {
+                        if(equals(entries.getValue(), Localization.lang.t("market.upgrades"))) {
+                            cost = entries.getKey();
+                        }
+                    }
+                    coin -= cost;
+                    upgrades.add(Upgrades.HARVEST);
+                    upgrades.add(Upgrades.PLANT);
+                }
                 case 3 -> {
                     int cost = 0;
                     for(Map.Entry<Integer, String> entries : market.entrySet()) {
