@@ -14,8 +14,8 @@ import java.util.function.Consumer;
  * Represents a console-based farm game where the player can plant,
  * water, harvest crops, buy plots/upgrades, and manage resources
  * like coins and water.
- * The farm maintains a grid of crops,
- * an inventory, a market, weather and upgrades.
+ * <p>The farm maintains a grid of crops,
+ * an inventory, a market, weather and upgrades.</p>
  */
 
 public class Farm {
@@ -38,18 +38,19 @@ public class Farm {
     private int dryDay;
 
     private Weather weather;
+    private Seasons season;
     private String[] previousArgs;
     private String lastCommand = "";
 
     /**
      * Initializes a new Farm game.
      * Sets up the farm grid, inventory, commands, market,
-     * weather and upgrades;
-     * and starts the main game loop.
+     * weather and upgrades. It starts the main game loop.
      */
     public Farm() {
         this.crops = new Crop[MAX_SIZE][MAX_SIZE];
         this.indices = new int[SIZE * SIZE][2];
+
         Localization.lang.setLocale(Locale.forLanguageTag("en"));
         final String NAME = Localization.lang.t("game.farm");
         this.user = Paths.get(System.getProperty("user.home")).getFileName().toString();
@@ -64,6 +65,7 @@ public class Farm {
         this.scan = new Scanner(System.in);
         this.day = Localization.lang.t("game.day");
         this.weather = Weather.SUNNY;
+        this.season = Seasons.SPRING;
         this.upgrades = new ArrayList<>();
         upgrades.add(Upgrades.NULL);
         start();
@@ -314,7 +316,11 @@ public class Farm {
      * which and when it grows
      */
     private void season() {
-        // TODO seasons logic
+        if(days % 30 == 0) {
+            season = season.next();
+            println(Localization.lang.t("game.season.new",
+                    season.getKey()));
+        }
     }
 
     /**
@@ -336,7 +342,7 @@ public class Farm {
     private void plant(String[] args) {
         if(args.length < 3 && upgrades.contains(Upgrades.PLANT)) {
             for(int[] pos : index()) {
-                crops[pos[1]][pos[2]] = new Crop(CropID.random());
+                crops[pos[1]][pos[2]] = new Crop(CropID.random(season));
             }
             return;
         }
@@ -365,7 +371,7 @@ public class Farm {
             return;
         }
 
-        crops[row][col] = new Crop(CropID.random());
+        crops[row][col] = new Crop(CropID.random(season));
         println(Localization.lang.t("game.plant.success", row, col));
     }
 
@@ -387,7 +393,8 @@ public class Farm {
     private void sellCrops() {
         int totalCoin = 0;
 
-        for(Map.Entry<Item, Integer> entry : new LinkedHashMap<>(inventory.getAll()).entrySet()) {
+        for(Map.Entry<Item, Integer> entry : new LinkedHashMap<>(inventory
+                .getAll()).entrySet()) {
             Item item = entry.getKey();
             if(item instanceof CropID c) {
                 int quantity = entry.getValue();
@@ -436,7 +443,8 @@ public class Farm {
                     int increase = 2;
 
                     for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(equals(entries.getValue(), Localization.lang.t("market.plot"))) {
+                        if(equals(entries.getValue(), Localization.lang.t(
+                                "market.plot"))) {
                             cost = entries.getKey();
                         }
                     }
@@ -462,7 +470,8 @@ public class Farm {
                 case 2 -> {
                     int cost = 0;
                     for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(equals(entries.getValue(), Localization.lang.t("market.upgrades"))) {
+                        if(equals(entries.getValue(), Localization.lang.t(
+                                "market.upgrades"))) {
                             cost = entries.getKey();
                         }
                     }
@@ -473,7 +482,8 @@ public class Farm {
                 case 3 -> {
                     int cost = 0;
                     for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(equals(entries.getValue(), Localization.lang.t("market.water"))) {
+                        if(equals(entries.getValue(), Localization.lang.t(
+                                "market.water"))) {
                             cost = entries.getKey();
                         }
                     }
@@ -485,7 +495,8 @@ public class Farm {
 
                     coin -= cost;
                     water += 4;
-                    println(Localization.lang.t("market.bought", "market.water", coin));
+                    println(Localization.lang.t("market.bought",
+                            "market.water", coin));
                 }
                 case 4 -> isBuying = false;
             }

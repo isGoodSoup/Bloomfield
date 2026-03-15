@@ -4,13 +4,34 @@ import com.soup.game.intf.Item;
 
 import java.util.*;
 
+/**
+ * Represents a player's inventory in the farm game.
+ *
+ * <p>This class manages items, tracks quantities, allows adding
+ * and removing items, and provides access to individual items
+ * or a summary of all items in the inventory.</p>
+ */
 public class Inventory {
     private final Map<Item, List<Item>> items = new LinkedHashMap<>();
 
+    /**
+     * Adds a single item to the inventory.
+     * <p>If the item type already exists, it adds it to the existing list.</p>
+     * @param item the {@link Item} to add
+     */
     public void add(Item item) {
         items.computeIfAbsent(item, k -> new ArrayList<>()).add(item);
     }
 
+    /**
+     * Returns the item at the given index across the inventory.
+     * <p>The inventory is treated as a flattened list of items.
+     * Throws an {@link IndexOutOfBoundsException} if the index is
+     * negative or exceeds the total item count.</p>
+     * @param i the index of the item
+     * @return the {@link Item} at the given index
+     * @throws IndexOutOfBoundsException if index is invalid
+     */
     public Item get(int i) {
         if(i < 0) {
             throw new IndexOutOfBoundsException("Index cannot be negative");
@@ -27,10 +48,20 @@ public class Inventory {
         throw new IndexOutOfBoundsException("Index out of inventory bounds");
     }
 
+    /**
+     * Adds all items from a collection to the inventory.
+     * @param newItems collection of {@link Item}s to add
+     */
     public void addAll(Collection<Item> newItems) {
         for (Item item : newItems) add(item);
     }
 
+    /**
+     * Removes a single instance of the given item from the inventory.
+     * <p>If the last instance is removed, the item type is removed entirely.</p>
+     * @param item the {@link Item} to remove
+     * @return true if an item was removed, false otherwise
+     */
     @SuppressWarnings("UnusedReturnValue")
     public boolean remove(Item item) {
         List<Item> list = items.get(item);
@@ -40,11 +71,20 @@ public class Inventory {
         return true;
     }
 
+    /**
+     * Returns the quantity of a specific item in the inventory.
+     * @param item the {@link Item} to count
+     * @return number of instances of this item
+     */
     public int getQuantity(Item item) {
         List<Item> list = items.get(item);
         return list == null ? 0 : list.size();
     }
 
+    /**
+     * Returns a map of all items with their quantities.
+     * @return a {@link Map} mapping each {@link Item} to its quantity
+     */
     public Map<Item, Integer> getAll() {
         Map<Item, Integer> result = new LinkedHashMap<>();
         for(Map.Entry<Item, List<Item>> e : items.entrySet()) {
@@ -53,10 +93,19 @@ public class Inventory {
         return result;
     }
 
+    /**
+     * Checks whether the inventory is empty.
+     * @return true if there are no items, false otherwise
+     */
     public boolean isEmpty() {
         return items.isEmpty();
     }
 
+    /**
+     * Returns the total number of items in the inventory,
+     * counting all instances of each item type.
+     * @return total item count
+     */
     public int size() {
         int total = 0;
         for(List<Item> list : items.values()) {
