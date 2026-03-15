@@ -186,17 +186,38 @@ public class Farm {
     }
 
     private void updateHydration() {
-        for(int[] pos : index()) {
+        int noneCount = 0, lowCount = 0, midCount = 0, highCount = 0, maxCount = 0;
+
+        for (int[] pos : index()) {
             Crop crop = crops[pos[0]][pos[1]];
             Hydration hydration = crop.getHydration();
-            switch(hydration) {
-                case NONE -> crop.wither();
-                case LOW -> crop.water(Hydration.NONE);
-                case MID -> crop.water(Hydration.LOW);
-                case HIGH -> crop.water(Hydration.MID);
-                case MAX -> crop.water(Hydration.HIGH);
+            switch (hydration) {
+                case NONE -> {
+                    noneCount++;
+                    crop.wither();
+                }
+                case LOW -> {
+                    lowCount++;
+                    crop.water(Hydration.NONE);
+                }
+                case MID -> {
+                    midCount++;
+                    crop.water(Hydration.LOW);
+                }
+                case HIGH -> {
+                    highCount++;
+                    crop.water(Hydration.MID);
+                }
+                case MAX -> {
+                    maxCount++;
+                    crop.water(Hydration.HIGH);
+                }
             }
         }
+
+        int[] counts = {noneCount, lowCount, midCount, highCount, maxCount};
+        int average = Arrays.stream(counts).sum()/counts.length;
+        println(Localization.lang.t("game.irrigate_crops", average));
     }
 
     private void irrigate(String[] args) {
