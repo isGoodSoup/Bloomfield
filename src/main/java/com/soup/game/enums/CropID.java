@@ -1,12 +1,13 @@
 package com.soup.game.enums;
 
 import com.soup.game.intf.Data;
+import com.soup.game.intf.Item;
 import com.soup.game.service.Localization;
 
 import java.util.Random;
 
 @Data
-public enum CropID {
+public enum CropID implements Item {
     WHEAT("crop.wheat", 8, 5, 4, true),
     CABBAGE("crop.cabbage", 8, 10, 6, false),
     CORN("crop.corn", 16, 15, 6, false),
@@ -33,22 +34,26 @@ public enum CropID {
         this.canRegrow = canRegrow;
     }
 
+    @Override
+    public String getName() {
+        return Localization.lang.t(name);
+    }
+
+    @Override
+    public int getValue() {
+        return value;
+    }
+
     public static CropID random() {
         return CropID.values()[random.nextInt(0, CropID.values().length - 1)];
     }
     public boolean regrows() {
         return canRegrow;
     }
-    public String getName() {
-        return Localization.lang.t(name);
-    }
     public int getYield() {
         return yield;
     }
     public int getDays() {
         return days;
-    }
-    public int getValue() {
-        return value;
     }
 }
