@@ -121,10 +121,10 @@ public final class Game {
         String line;
         do {
             line = console().reply("").trim();
-            if(!line.equals(";")) {
+            if(!console().equals(line, ";")) {
                 script.append(line).append("\n");
             }
-        } while(!line.equals(";"));
+        } while(!console().equals(line, ";"));
 
         String[] lines = script.toString().split("\\R");
         for (String l : lines) {
