@@ -418,7 +418,7 @@ public class Farm {
      */
     private void get(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.rip.usage"));
+            console().println(Localization.lang.t("game.get_crop.usage"));
             return;
         }
 
