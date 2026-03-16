@@ -61,7 +61,8 @@ public class SproutlyFarm {
         upgrades.add(Upgrades.NULL);
 
         ASCIILogo.print();
-        console().println(Localization.lang.t("game.welcome", player.title()), Console.BRIGHT_GREEN);
+        console().println(Localization.lang.t("game.welcome", player.title()),
+                Console.BRIGHT_GREEN);
         start();
     }
 
@@ -232,18 +233,21 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
+                    Console.BRIGHT_RED);
             return;
         }
 
         Tile tile = tiles[row][col];
         if(tile.crop() == null) {
-            console().println(Localization.lang.t("game.harvest.nothing"), Console.BRIGHT_RED);
+            console().println(Localization.lang.t("game.harvest.nothing"),
+                    Console.BRIGHT_RED);
             return;
         }
 
         if(!tile.crop().canHarvest()) {
-            console().println(Localization.lang.t("game.harvest.not_ready"), Console.BRIGHT_RED);
+            console().println(Localization.lang.t("game.harvest.not_ready"),
+                    Console.BRIGHT_RED);
             return;
         }
 
@@ -291,7 +295,8 @@ public class SproutlyFarm {
         }
 
         float average = cropCount > 0 ? (float) totalHydration/cropCount : 0f;
-        console().println(Localization.lang.t("game.irrigate_crops", average), Console.BLUE);
+        console().println(Localization.lang.t("game.irrigate_crops", average),
+                Console.CYAN);
     }
 
     /**
@@ -308,7 +313,8 @@ public class SproutlyFarm {
                 }
                 water -= 0.1f;
             }
-            console().println(Localization.lang.t("game.irrigate.success", water), Console.BRIGHT_GREEN);
+            console().println(Localization.lang.t("game.irrigate.success", water),
+                    Console.BRIGHT_GREEN);
         } else {
             console().error(Localization.lang.t("game.irrigate.fail"));
         }
@@ -337,7 +343,7 @@ public class SproutlyFarm {
         } else {
             dryDay = 0;
         }
-        console().println(weather.message(), Console.BLUE);
+        console().println(weather.message(), Console.CYAN);
     }
 
     /**
@@ -368,18 +374,21 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
+                    Console.BRIGHT_RED);
             return;
         }
 
         if(tiles[row][col] != null) {
-            console().println(Localization.lang.t("game.plant.occupied"), Console.BRIGHT_RED);
+            console().println(Localization.lang.t("game.plant.occupied"),
+                    Console.BRIGHT_RED);
             return;
         }
 
         tiles[row][col] = new Tile(new Crop(CropID.id.random(season)),
                 Soil.SILT, Fertilizer.NONE);
-        console().println(Localization.lang.t("game.plant.success", row, col), Console.BRIGHT_GREEN);
+        console().println(Localization.lang.t("game.plant.success", row, col),
+                Console.BRIGHT_GREEN);
     }
 
     /**
@@ -398,7 +407,8 @@ public class SproutlyFarm {
      */
     private void get(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.get_crop.usage"), Console.PURPLE);
+            console().println(Localization.lang.t("game.get_crop.usage"),
+                    Console.PURPLE);
             return;
         }
 
@@ -412,14 +422,16 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
+                    Console.BRIGHT_RED);
             return;
         }
 
         Tile tile = tiles[row][col];
         if(tile != null && tile.crop() != null) {
             String id = tile.crop().getId().getName();
-            console().println(Localization.lang.t("game.get_crop", id, row, col), Console.PURPLE);
+            console().println(Localization.lang.t("game.get_crop", id, row, col),
+                    Console.PURPLE);
         }
     }
 
@@ -453,12 +465,14 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
+                    Console.BRIGHT_RED);
             return;
         }
 
         tiles[row][col] = null;
-        console().println(Localization.lang.t("game.rip.success", row, col), Console.BRIGHT_GREEN);
+        console().println(Localization.lang.t("game.rip.success", row, col),
+                Console.BRIGHT_GREEN);
     }
 
     /**
@@ -467,8 +481,9 @@ public class SproutlyFarm {
      */
     private void sleep(String[] args) {
         hours = HOURS;
-        console().println(Localization.lang.t("game.sleep"), Console.BLUE);
-        console().println(Localization.lang.t("game.coin", player.purse()), Console.YELLOW);
+        console().println(Localization.lang.t("game.sleep"), Console.CYAN);
+        console().println(Localization.lang.t("game.coin", player.purse()),
+                Console.YELLOW);
         updateHydration();
     }
 
@@ -543,7 +558,8 @@ public class SproutlyFarm {
                     }
 
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("market.funds"), Console.BRIGHT_RED);
+                        console().println(Localization.lang.t("market.funds"),
+                                Console.BRIGHT_RED);
                         return;
                     }
 
@@ -564,12 +580,14 @@ public class SproutlyFarm {
                     }
 
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("game.plot.fail"), Console.BRIGHT_RED);
+                        console().println(Localization.lang.t("game.plot.fail"),
+                                Console.BRIGHT_RED);
                         return;
                     }
 
                     if(SIZE + increase > MAX_SIZE) {
-                        console().println(Localization.lang.t("game.plot.size"), Console.BRIGHT_RED);
+                        console().println(Localization.lang.t("game.plot.size"),
+                                Console.BRIGHT_RED);
                         return;
                     }
 
@@ -608,7 +626,8 @@ public class SproutlyFarm {
         }
 
         for(Map.Entry<Item, Integer> entry : inventory().getAll().entrySet()) {
-            console().println(entry.getKey().getName() + " x" + entry.getValue(), Console.PURPLE);
+            console().println(entry.getKey().getName() + " x" + entry.getValue(),
+                    Console.PURPLE);
         }
     }
 
@@ -619,7 +638,7 @@ public class SproutlyFarm {
         int hour = (int) hours;
         int minute = (int) ((hours - hour) * 60);
         console().println(day + " " + days + " - " + String.format("%02d:%02d", hour, minute),
-                Console.BLUE);
+                Console.CYAN);
     }
 
     /**
@@ -643,7 +662,7 @@ public class SproutlyFarm {
     private void showHelp(String[] args) {
         console().println("Available commands:", Console.PURPLE);
         for(String cmd : console().cmd().keySet()) {
-            console().println(" - " + cmd, Console.BLUE);
+            console().println(" - " + cmd, Console.CYAN);
         }
     }
 

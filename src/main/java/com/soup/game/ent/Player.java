@@ -50,7 +50,8 @@ public class Player {
             levelUp();
             Console.cli.println(Localization.lang.t("player.levelup", level), Console.BRIGHT_GREEN);
         }
-        Console.cli.println(Localization.lang.t("player.gainxp", experience), Console.GREEN);
+        Console.cli.println(Localization.lang.t("player.gainxp", experience,
+                nextLevel - experience), Console.GREEN);
         add(experience);
     }
 
@@ -111,6 +112,7 @@ public class Player {
      */
     public void add(int experience) {
         this.experience += experience;
+        nextLevel -= this.experience;
     }
 
     /**
