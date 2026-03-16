@@ -141,6 +141,7 @@ public class Farm {
         console().cmd().put("?", this::showHelp);
         console().cmd().put(".", this::redo);
         console().cmd().put("harvest", this::harvest);
+        console().cmd().put("rip", this::rip);
         console().cmd().put("water", this::irrigate);
         console().cmd().put("plant", this::plant);
         console().cmd().put("show", args -> update());
@@ -164,13 +165,11 @@ public class Farm {
                 Tile tile = tiles[row][col];
                 if(dryDay > 4) {
                     console().print("[X] ");
-                    if(tile != null) { tile.crop().wither(); }
-                } else if(tile == null) {
+                    if (tile != null && tile.crop() != null) tile.crop().wither();
+                } else if (tile == null || tile.crop() == null) {
                     console().print("[ ] ");
                 } else {
-                    console().print(tile.crop().wasHarvestedToday() ? "[ ] "
-                            : tile.crop().canHarvest() ? "[H] "
-                            : "[" + tile.crop().getStage().name().charAt(0) + "] ");
+                    console().print("[" + tile.crop().getChar() + "] ");
                 }
             }
             console().println();
@@ -400,6 +399,30 @@ public class Farm {
         tiles[row][col] = new Tile(new Crop(CropID.random(season)),
                 Soil.SILT, Fertilizer.NONE);
         console().println(Localization.lang.t("game.plant.success", row, col));
+    }
+
+    private void rip(String[] args) {
+        if(args.length < 3) {
+            console().println(Localization.lang.t("game.rip.usage"));
+            return;
+        }
+
+        int row, col;
+        try {
+            row = Integer.parseInt(args[1]);
+            col = Integer.parseInt(args[2]);
+        } catch(NumberFormatException e) {
+            console().error(Localization.lang.t("game.coordinates.invalid"));
+            return;
+        }
+
+        if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"));
+            return;
+        }
+
+        tiles[row][col] = null;
+        console().println(Localization.lang.t("game.rip.success", row, col));
     }
 
     /**

@@ -26,6 +26,7 @@ public final class Crop {
     private boolean wasHarvested;
     private boolean canHarvest;
     private boolean canRegrow;
+    private boolean isWithered;
 
     /**
      * Constructs a new Crop with the specified {@link CropID}.
@@ -70,6 +71,7 @@ public final class Crop {
     public void wither() {
         canHarvest = false;
         daysToMature = -1;
+        isWithered = true;
     }
 
     /**
@@ -170,5 +172,35 @@ public final class Crop {
      */
     public void water(Hydration hydration) {
         this.hydration = hydration;
+    }
+
+    /**
+     * A check if the crop itself is withered
+     * @return returns true if the crop is withered (WOWW),
+     * false otherwise
+     */
+    public boolean isWithered() {
+        return isWithered;
+    }
+
+    /**
+     * Returns a character representing the current display state of the crop.
+     * <p>
+     * The returned character encodes the crop’s status for rendering in the farm grid:
+     * <ul>
+     *     <li>{@code ' '} – The crop was harvested today.</li>
+     *     <li>{@code 'H'} – The crop is ready to be harvested.</li>
+     *     <li>{@code 'X'} – The crop has withered.</li>
+     *     <li>Otherwise, the first letter of the crop's growth stage (e.g., 'S' for SEED, 'G' for GROWING).</li>
+     * </ul>
+     * </p>
+     *
+     * @return a {@code char} representing the crop’s current display state
+     */
+    public char getChar() {
+        if(wasHarvested) { return ' '; }
+        if(canHarvest) { return 'H'; }
+        if(isWithered) { return 'X'; }
+        return stage.name().charAt(0);
     }
 }
