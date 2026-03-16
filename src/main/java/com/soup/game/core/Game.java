@@ -23,7 +23,7 @@ import java.util.function.Consumer;
  */
 
 @World
-public class SproutlyFarm {
+public class Game {
     private static final int MAX_SIZE = 1024;
     private static final float HOURS = 24f;
     private final Player player;
@@ -49,7 +49,7 @@ public class SproutlyFarm {
      * Sets up the farm grid, inventory, commands, market,
      * weather and upgrades. It starts the main game loop.
      */
-    public SproutlyFarm() {
+    public Game() {
         Localization.lang.setLocale(Locale.forLanguageTag("en"));
         this.tiles = new Tile[MAX_SIZE][MAX_SIZE];
         this.player = new Player();
@@ -71,7 +71,7 @@ public class SproutlyFarm {
      * @param args
      */
     public static void main(String[] args) {
-        new SproutlyFarm();
+        new Game();
     }
 
     /**
