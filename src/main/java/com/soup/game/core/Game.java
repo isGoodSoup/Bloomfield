@@ -16,13 +16,58 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Represents a console-based farm game where the player can plant,
- * water, harvest crops, buy plots/upgrades, and manage resources
- * like coins and water.
+ * The {@code Game} class represents the core logic for the Farmlet terminal-based farming simulation game.
  * <p>
- * The farm maintains a grid of crops,
- * an inventory, a market, weather and upgrades.
+ * This class manages the player's farm, including tiles, crops, resources, upgrades, inventory, weather,
+ * seasons, and the main game loop. It handles all player commands and updates the game state accordingly.
  * </p>
+ *
+ * <p><b>Game Features:</b></p>
+ * <ul>
+ *     <li>Dynamic farm grid of size {@code SIZE} × {@code SIZE}, up to {@value MAX_SIZE}</li>
+ *     <li>Player resource management (coins, water, inventory, XP)</li>
+ *     <li>Seasonal and daily weather effects</li>
+ *     <li>Crop planting, watering, harvesting, and regrowth</li>
+ *     <li>Command-driven gameplay with loops and conditionals</li>
+ *     <li>Market system for buying water, plots, and upgrades</li>
+ *     <li>Statistics and game ending messages based on performance</li>
+ * </ul>
+ *
+ * <p><b>Game Flow:</b></p>
+ * <ol>
+ *     <li>Initialize game and console</li>
+ *     <li>Start main loop</li>
+ *     <li>Process player commands</li>
+ *     <li>Update farm state (weather, season, crop growth)</li>
+ *     <li>Update inventory and player stats</li>
+ *     <li>Check for game ending conditions</li>
+ * </ol>
+ *
+ * <p><b>Command System:</b></p>
+ * <p>The game supports a variety of commands including:</p>
+ * <ul>
+ *     <li>Planting crops: {@code plant row col} or {@code plant all} (if upgrade unlocked)</li>
+ *     <li>Watering crops: {@code water row col}</li>
+ *     <li>Harvesting crops: {@code harvest row col} or {@code harvest all} (if upgrade unlocked)</li>
+ *     <li>Viewing farm: {@code show} or {@code view startRow startCol endRow endCol}</li>
+ *     <li>Market transactions: {@code buy} or {@code give}</li>
+ *     <li>Game utilities: {@code sleep}, {@code stats}, {@code inv}, {@code ?}, {@code redo}</li>
+ *     <li>Loops and conditionals: {@code for}, {@code while} (requires specific upgrades)</li>
+ *     <li>Game termination: {@code end}, {@code forceEnd}</li>
+ * </ul>
+ *
+ * <p><b>Notes:</b></p>
+ * <ul>
+ *     <li>The game grid is stored in a 2D array of {@link Tile} objects.</li>
+ *     <li>Crop growth, hydration, and harvest states are handled internally in {@link Crop}.</li>
+ *     <li>Weather and season changes affect crop growth.</li>
+ *     <li>Inventory management is done via {@link Inventory} attached to the {@link Player}.</li>
+ *     <li>The console interaction is handled by the singleton {@link Console} service.</li>
+ * </ul>
+ *
+ * @author isGoodSoup
+ * @version 1.8
+ * @since 1.0
  */
 @World
 public final class Game {
@@ -656,7 +701,7 @@ public final class Game {
                 tile.crop().water(Hydration.HIGH);
             }
             water -= 0.1f;
-            waterUsed += water;
+            waterUsed += 0.1f;
             console().println(Localization.lang.t("game.irrigate.success", water),
                     Console.BRIGHT_GREEN);
         } else {
@@ -1076,7 +1121,7 @@ public final class Game {
 
         console().println(Localization.lang.t("game.give.success",
                 item, quantity), Console.BRIGHT_GREEN);
-        forceEnd();
+//        forceEnd();
     }
 
     /**
