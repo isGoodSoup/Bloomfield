@@ -509,9 +509,9 @@ public class SproutlyFarm {
      */
     private void buy() {
         market.clear();
-        market.put(8_192, Localization.lang.t("market.plot"));
-        market.put(65_536, Localization.lang.t("market.upgrades"));
         market.put(100, Localization.lang.t("market.water"));
+        market.put(8_192, Localization.lang.t("market.plot"));
+        market.put(16_384, Localization.lang.t("market.upgrades"));
         boolean isBuying = true;
         do {
             int r = Integer.MAX_VALUE;
@@ -534,6 +534,25 @@ public class SproutlyFarm {
 
             switch(r) {
                 case 1 -> {
+                    int cost = 0;
+                    for(Map.Entry<Integer, String> entries : market.entrySet()) {
+                        if(console().equals(entries.getValue(), Localization.lang.t(
+                                "market.water"))) {
+                            cost = entries.getKey();
+                        }
+                    }
+
+                    if(player.purse() < cost) {
+                        console().println(Localization.lang.t("market.funds"));
+                        return;
+                    }
+
+                    player.take(cost);
+                    water += 0.5f;
+                    console().println(Localization.lang.t("market.bought",
+                            "market.water", player.purse()));
+                }
+                case 2 -> {
                     int cost = 0;
                     int increase = 2;
 
@@ -562,7 +581,7 @@ public class SproutlyFarm {
                     console().println(Localization.lang.t("market.bought.plot",
                             newPlots, player.purse()));
                 }
-                case 2 -> {
+                case 3 -> {
                     int cost = 0;
                     for(Map.Entry<Integer, String> entries : market.entrySet()) {
                         if(console().equals(entries.getValue(), Localization.lang.t(
@@ -573,25 +592,6 @@ public class SproutlyFarm {
                     player.take(cost);
                     upgrades.add(Upgrades.HARVEST);
                     upgrades.add(Upgrades.PLANT);
-                }
-                case 3 -> {
-                    int cost = 0;
-                    for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(console().equals(entries.getValue(), Localization.lang.t(
-                                "market.water"))) {
-                            cost = entries.getKey();
-                        }
-                    }
-
-                    if(player.purse() < cost) {
-                        console().println(Localization.lang.t("market.funds"));
-                        return;
-                    }
-
-                    player.take(cost);
-                    water += 0.5f;
-                    console().println(Localization.lang.t("market.bought",
-                            "market.water", player.purse()));
                 }
                 case 4 -> isBuying = false;
             }
