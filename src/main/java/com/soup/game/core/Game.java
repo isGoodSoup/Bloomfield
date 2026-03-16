@@ -187,6 +187,103 @@ public final class Game {
     }
 
     /**
+     * Displays a portion of the farm grid to the console.
+     * <p>
+     * The portion is defined by the start and end coordinates:
+     * <ul>
+     *     <li>args[1]: start row (inclusive)</li>
+     *     <li>args[2]: start column (inclusive)</li>
+     *     <li>args[3]: end row (exclusive)</li>
+     *     <li>args[4]: end column (exclusive)</li>
+     * </ul>
+     * Each tile is displayed as follows:
+     * <ul>
+     *     <li>[ ] for empty plots</li>
+     *     <li>[X] for withered crops</li>
+     *     <li>[S], [G], [M], [H] etc. for crops in various growth stages</li>
+     * </ul>
+     * Colors are applied according to crop growth stage:
+     * <ul>
+     *     <li>SEED, BUD: purple</li>
+     *     <li>GROWING: blue</li>
+     *     <li>MATURE: cyan</li>
+     *     <li>HARVESTABLE: bright green</li>
+     * </ul>
+     * <p>
+     * This method is used by both the "show" command (full farm)
+     * and the "view" command (subset of the farm). It performs
+     * validation of coordinates and prints an error message if
+     * coordinates are invalid or out of bounds.
+     * </p>
+     *
+     * @param args an array of command arguments, where:
+     *             <ul>
+     *                 <li>args[0] is the command name ("show" or "view")</li>
+     *                 <li>args[1] is the start row (inclusive)</li>
+     *                 <li>args[2] is the start column (inclusive)</li>
+     *                 <li>args[3] is the end row (exclusive)</li>
+     *                 <li>args[4] is the end column (exclusive)</li>
+     *             </ul>
+     */
+    private void update(String[] args) {
+        if(args.length < 5) {
+            console().println(Localization.lang.t("game.view.usage"),
+                    Console.PURPLE);
+            return;
+        }
+
+        int startRow, startCol;
+        int endRow, endCol;
+        try {
+            startRow = Integer.parseInt(args[1]);
+            startCol = Integer.parseInt(args[2]);
+            endRow = Integer.parseInt(args[3]);
+            endCol = Integer.parseInt(args[4]);
+        } catch(NumberFormatException e) {
+            console().error(Localization.lang.t("game.coordinates.invalid"));
+            return;
+        }
+
+        if(startRow < 0 || startRow >= SIZE || startCol < 0 || startCol >= SIZE) {
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
+                    Console.BRIGHT_RED);
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("    ");
+        for(int col = startCol; col < endCol; col++) {
+            sb.append(String.format("%-3d", col));
+        }
+        sb.append("\n");
+        for(int row = startRow; row < endRow; row++) {
+            sb.append(String.format("%-3d", row));
+            for(int col = startCol; col < endCol; col++) {
+                Tile tile = tiles[row][col];
+                if(tile == null || tile.crop() == null) {
+                    sb.append("[ ]");
+                } else if(tile.crop().getHydration() == Hydration.NONE) {
+                    tile.crop().wither();
+                    sb.append(Console.RED).append("[X]").append(Console.RESET);
+                } else {
+                    String stageColor = "foo2";
+                    switch(tile.crop().getStage()) {
+                        case SEED, BUD -> stageColor = Console.PURPLE;
+                        case GROWING -> stageColor = Console.BLUE;
+                        case MATURE -> stageColor = Console.CYAN;
+                        case HARVESTABLE -> stageColor = Console.BRIGHT_GREEN;
+                    }
+                    sb.append(stageColor).append("[")
+                            .append(tile.crop().getChar()).append("]")
+                            .append(Console.RESET);
+                }
+            }
+            sb.append("\n");
+        }
+        console().println(sb.toString());
+    }
+
+    /**
      * Advances the growth of all crops on the farm,
      * except during dry weather.
      */
