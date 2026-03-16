@@ -48,9 +48,9 @@ public class Player {
     public void update(int experience) {
         if(this.experience > nextLevel) {
             levelUp();
-            Console.cli.println(Localization.lang.t("player.levelup", level));
+            Console.cli.println(Localization.lang.t("player.levelup", level), Console.BRIGHT_GREEN);
         }
-        Console.cli.println(Localization.lang.t("player.gainxp", experience));
+        Console.cli.println(Localization.lang.t("player.gainxp", experience), Console.GREEN);
         add(experience);
     }
 

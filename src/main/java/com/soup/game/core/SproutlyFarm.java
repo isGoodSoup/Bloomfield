@@ -61,7 +61,7 @@ public class SproutlyFarm {
         upgrades.add(Upgrades.NULL);
 
         ASCIILogo.print();
-        console().println(Localization.lang.t("game.welcome", player.title()));
+        console().println(Localization.lang.t("game.welcome", player.title()), Console.BRIGHT_GREEN);
         start();
     }
 
@@ -91,7 +91,7 @@ public class SproutlyFarm {
      */
     private void loop() {
         while(!console().equals(lastCommand, "end")) {
-            console().println(day + " " + days);
+            console().println(day + " " + days, Console.GREEN);
             season();
             weather();
             update();
@@ -211,14 +211,14 @@ public class SproutlyFarm {
                     tiles[row][col] = null;
                 }
                 console().println(Localization.lang.t("game.yields",
-                        inventory().getQuantity(tile.crop().getId())));
+                        inventory().getQuantity(tile.crop().getId())), Console.PURPLE);
                 player.update(tile.crop().getId().getXp());
             }
             return;
         }
 
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.harvest.usage"));
+            console().println(Localization.lang.t("game.harvest.usage"), Console.PURPLE);
             return;
         }
 
@@ -232,18 +232,18 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"));
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
             return;
         }
 
         Tile tile = tiles[row][col];
         if(tile.crop() == null) {
-            console().println(Localization.lang.t("game.harvest.nothing"));
+            console().println(Localization.lang.t("game.harvest.nothing"), Console.BRIGHT_RED);
             return;
         }
 
         if(!tile.crop().canHarvest()) {
-            console().println(Localization.lang.t("game.harvest.not_ready"));
+            console().println(Localization.lang.t("game.harvest.not_ready"), Console.BRIGHT_RED);
             return;
         }
 
@@ -256,7 +256,7 @@ public class SproutlyFarm {
         }
 
         console().println(Localization.lang.t("game.harvest.success",
-                tile.crop().getId().getName(), row, col));
+                tile.crop().getId().getName(), row, col), Console.BRIGHT_GREEN);
         player.update(tile.crop().getId().getXp());
     }
 
@@ -291,7 +291,7 @@ public class SproutlyFarm {
         }
 
         float average = cropCount > 0 ? (float) totalHydration/cropCount : 0f;
-        console().println(Localization.lang.t("game.irrigate_crops", average));
+        console().println(Localization.lang.t("game.irrigate_crops", average), Console.PURPLE);
     }
 
     /**
@@ -308,7 +308,7 @@ public class SproutlyFarm {
                 }
                 water -= 0.1f;
             }
-            console().println(Localization.lang.t("game.irrigate.success", water));
+            console().println(Localization.lang.t("game.irrigate.success", water), Console.BRIGHT_GREEN);
         } else {
             console().error(Localization.lang.t("game.irrigate.fail"));
         }
@@ -322,7 +322,7 @@ public class SproutlyFarm {
         if(days % 30 == 0) {
             season = season.next();
             console().println(Localization.lang.t("game.season.new",
-                    season.getKey()));
+                    season.getKey()), Console.PURPLE);
         }
     }
 
@@ -337,7 +337,7 @@ public class SproutlyFarm {
         } else {
             dryDay = 0;
         }
-        console().println(weather.message());
+        console().println(weather.message(), Console.BLUE);
     }
 
     /**
@@ -354,7 +354,7 @@ public class SproutlyFarm {
         }
 
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.plant.usage"));
+            console().println(Localization.lang.t("game.plant.usage"), Console.PURPLE);
             return;
         }
 
@@ -368,18 +368,18 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"));
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
             return;
         }
 
         if(tiles[row][col] != null) {
-            console().println(Localization.lang.t("game.plant.occupied"));
+            console().println(Localization.lang.t("game.plant.occupied"), Console.BRIGHT_RED);
             return;
         }
 
         tiles[row][col] = new Tile(new Crop(CropID.id.random(season)),
                 Soil.SILT, Fertilizer.NONE);
-        console().println(Localization.lang.t("game.plant.success", row, col));
+        console().println(Localization.lang.t("game.plant.success", row, col), Console.BRIGHT_GREEN);
     }
 
     /**
@@ -398,7 +398,7 @@ public class SproutlyFarm {
      */
     private void get(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.get_crop.usage"));
+            console().println(Localization.lang.t("game.get_crop.usage"), Console.PURPLE);
             return;
         }
 
@@ -412,14 +412,14 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"));
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
             return;
         }
 
         Tile tile = tiles[row][col];
         if(tile != null && tile.crop() != null) {
             String id = tile.crop().getId().getName();
-            console().println(Localization.lang.t("game.get_crop", id, row, col));
+            console().println(Localization.lang.t("game.get_crop", id, row, col), Console.PURPLE);
         }
     }
 
@@ -439,7 +439,7 @@ public class SproutlyFarm {
      */
     private void rip(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.rip.usage"));
+            console().println(Localization.lang.t("game.rip.usage"), Console.PURPLE);
             return;
         }
 
@@ -453,12 +453,12 @@ public class SproutlyFarm {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"));
+            console().println(Localization.lang.t("game.coordinates.out_of_bounds"), Console.BRIGHT_RED);
             return;
         }
 
         tiles[row][col] = null;
-        console().println(Localization.lang.t("game.rip.success", row, col));
+        console().println(Localization.lang.t("game.rip.success", row, col), Console.BRIGHT_GREEN);
     }
 
     /**
@@ -467,8 +467,8 @@ public class SproutlyFarm {
      */
     private void sleep(String[] args) {
         hours = HOURS;
-        console().println(Localization.lang.t("game.sleep"));
-        console().println(Localization.lang.t("game.coin", player.purse()));
+        console().println(Localization.lang.t("game.sleep"), Console.BLUE);
+        console().println(Localization.lang.t("game.coin", player.purse()), Console.YELLOW);
         updateHydration();
     }
 
@@ -500,7 +500,7 @@ public class SproutlyFarm {
             }
         }
         player.earn(totalCoin);
-        console().println(Localization.lang.t("game.sold", totalCoin));
+        console().println(Localization.lang.t("game.sold", totalCoin), Console.YELLOW);
     }
 
     /**
@@ -525,7 +525,7 @@ public class SproutlyFarm {
                 String price = entry.getKey().toString();
                 String name = entry.getValue();
                 String spaces = " ".repeat(maxPriceWidth - price.length() + 2);
-                console().println(price + spaces + name + " gold");
+                console().println(price + spaces + name + " gold", Console.PURPLE);
             }
 
             while(r > market.size() + 1) {
@@ -543,14 +543,14 @@ public class SproutlyFarm {
                     }
 
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("market.funds"));
+                        console().println(Localization.lang.t("market.funds"), Console.BRIGHT_RED);
                         return;
                     }
 
                     player.take(cost);
                     water += 0.5f;
                     console().println(Localization.lang.t("market.bought",
-                            "market.water", player.purse()));
+                            "market.water", player.purse()), Console.BRIGHT_GREEN);
                 }
                 case 2 -> {
                     int cost = 0;
@@ -564,12 +564,12 @@ public class SproutlyFarm {
                     }
 
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("game.plot.fail"));
+                        console().println(Localization.lang.t("game.plot.fail"), Console.BRIGHT_RED);
                         return;
                     }
 
                     if(SIZE + increase > MAX_SIZE) {
-                        console().println(Localization.lang.t("game.plot.size"));
+                        console().println(Localization.lang.t("game.plot.size"), Console.BRIGHT_RED);
                         return;
                     }
 
@@ -579,7 +579,7 @@ public class SproutlyFarm {
                     int newPlots = SIZE * SIZE - oldSize * oldSize;
                     resize();
                     console().println(Localization.lang.t("market.bought.plot",
-                            newPlots, player.purse()));
+                            newPlots, player.purse()), Console.BRIGHT_GREEN);
                 }
                 case 3 -> {
                     int cost = 0;
@@ -603,12 +603,12 @@ public class SproutlyFarm {
      */
     private void showInventory() {
         if(inventory().isEmpty()) {
-            console().println(Localization.lang.t("game.inventory.empty"));
+            console().println(Localization.lang.t("game.inventory.empty"), Console.BRIGHT_RED);
             return;
         }
 
         for(Map.Entry<Item, Integer> entry : inventory().getAll().entrySet()) {
-            console().println(entry.getKey().getName() + " x" + entry.getValue());
+            console().println(entry.getKey().getName() + " x" + entry.getValue(), Console.PURPLE);
         }
     }
 
@@ -618,21 +618,22 @@ public class SproutlyFarm {
     private void showTime() {
         int hour = (int) hours;
         int minute = (int) ((hours - hour) * 60);
-        console().println(day + " " + days + " - " + String.format("%02d:%02d", hour, minute));
+        console().println(day + " " + days + " - " + String.format("%02d:%02d", hour, minute),
+                Console.BLUE);
     }
 
     /**
      * Displays current game statistics: total crops, days passed, and coins.
      */
     private void showStats() {
-        console().println(Localization.lang.t("game.stats"));
+        console().println(Localization.lang.t("game.stats"), Console.PURPLE);
         int totalCrops = 0;
         for(Map.Entry<Item, Integer> entries : inventory().getAll().entrySet()) {
             totalCrops += entries.getValue();
         }
-        console().println(Localization.lang.t("game.stats.crops", totalCrops));
-        console().println(Localization.lang.t("game.stats.days",days));
-        console().println(Localization.lang.t("game.stats.coin", player.purse()));
+        console().println(Localization.lang.t("game.stats.crops", totalCrops), Console.PURPLE);
+        console().println(Localization.lang.t("game.stats.days",days), Console.PURPLE);
+        console().println(Localization.lang.t("game.stats.coin", player.purse()), Console.PURPLE);
     }
 
     /**
@@ -640,9 +641,9 @@ public class SproutlyFarm {
      * @param args optional command arguments
      */
     private void showHelp(String[] args) {
-        console().println("Available commands:");
+        console().println("Available commands:", Console.PURPLE);
         for(String cmd : console().cmd().keySet()) {
-            console().println(" - " + cmd);
+            console().println(" - " + cmd, Console.BLUE);
         }
     }
 
