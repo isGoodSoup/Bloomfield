@@ -34,7 +34,7 @@ public class Farm {
     private final String day;
 
     private int SIZE = 2;
-    private int water = 100;
+    private float water = 100f;
     private int days;
     private int dryDay;
     private float hours;
@@ -305,7 +305,7 @@ public class Farm {
                 if(tile != null && tile.crop() != null) {
                     tile.crop().water(Hydration.HIGH);
                 }
-                water -= 1;
+                water -= 0.1f;
             }
             console().println(Localization.lang.t("game.irrigate.success", water));
         } else {
@@ -588,7 +588,7 @@ public class Farm {
                     }
 
                     player.take(cost);
-                    water += 4;
+                    water += 0.5f;
                     console().println(Localization.lang.t("market.bought",
                             "market.water", player.purse()));
                 }
