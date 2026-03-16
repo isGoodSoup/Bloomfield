@@ -6,7 +6,7 @@ package com.soup.game.enums;
  * <p>The stages are sequential and describe the lifecycle of a crop:</p>
  * <ul>
  *     <li>{@link #SEED} – initial planted stage</li>
- *     <li>{@link #SPROUT} – early growth</li>
+ *     <li>{@link #BUD} – early growth</li>
  *     <li>{@link #GROWING} – mid-growth phase</li>
  *     <li>{@link #MATURE} – fully grown but not yet harvestable</li>
  *     <li>{@link #HARVESTABLE} – ready to be harvested</li>
@@ -16,7 +16,7 @@ package com.soup.game.enums;
  * next growth stage.</p>
  */
 public enum GrowthStage {
-    SEED, SPROUT, GROWING, MATURE, HARVESTABLE;
+    SEED, BUD, GROWING, MATURE, HARVESTABLE;
 
     /**
      * Returns the next stage in the growth lifecycle.

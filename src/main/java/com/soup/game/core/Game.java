@@ -61,7 +61,7 @@ public final class Game {
         this.upgrades = new ArrayList<>();
         upgrades.add(Upgrades.NULL);
 
-        ASCIILogo.print();
+        console().println("Farmlet, a terminal farm", Console.PURPLE);
         console().println(Localization.lang.t("game.welcome", player.title()),
                 Console.BRIGHT_GREEN);
         start();
