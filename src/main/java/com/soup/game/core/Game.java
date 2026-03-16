@@ -140,8 +140,10 @@ public final class Game {
                 if(action != null) {
                     action.accept(parts);
                     lastCommand = command;
+                } else {
+                    console().println(Localization.lang.t("game.cmd.unknown", parts[0]),
+                            Console.RED);
                 }
-                else console().error("Unknown command: " + parts[0]);
             }
 
             if(doSleep(lastCommand)) {
@@ -306,6 +308,7 @@ public final class Game {
      */
     private void forLoop(String[] args) {
         if(!upgrades.contains(Upgrades.FOR_LOOP)) {
+            console().println(Localization.lang.t("game.upgrade.locked"), Console.RED);
             return;
         }
         if(args.length < 3) {
@@ -327,7 +330,7 @@ public final class Game {
         String[] commandArgs = Arrays.copyOfRange(args, 2, args.length);
         Consumer<String[]> action = console().cmd().get(command);
         if(action == null) {
-            console().error("Unknown command: " + command);
+            console().println(Localization.lang.t("game.cmd.unknown", command), Console.RED);
             return;
         }
 
@@ -394,7 +397,8 @@ public final class Game {
         Consumer<String[]> action = console().cmd().get(command);
 
         if(action == null) {
-            console().error("Unknown command: " + command);
+            console().println(Localization.lang.t("game.cmd.unknown", command),
+                    Console.RED);
             return;
         }
 
