@@ -1,14 +1,15 @@
 package com.soup.game.core;
 
-import com.soup.game.world.Crop;
 import com.soup.game.ent.Player;
-import com.soup.game.world.Tile;
 import com.soup.game.enums.*;
 import com.soup.game.intf.Item;
 import com.soup.game.intf.World;
 import com.soup.game.service.Console;
 import com.soup.game.service.Inventory;
 import com.soup.game.service.Localization;
+import com.soup.game.service.Pos;
+import com.soup.game.world.Crop;
+import com.soup.game.world.Tile;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -28,10 +29,10 @@ public class Farm {
     private final Player player;
     private final Tile[][] tiles;
     private final Map<Integer, String> market;
+    private List<Pos> positions;
     private final List<Upgrades> upgrades;
     private final String day;
 
-    private int[][] indices;
     private int SIZE = 2;
     private int water;
     private int days;
@@ -51,7 +52,6 @@ public class Farm {
     public Farm() {
         Localization.lang.setLocale(Locale.forLanguageTag("en"));
         this.tiles = new Tile[MAX_SIZE][MAX_SIZE];
-        this.indices = new int[SIZE * SIZE][2];
         this.player = new Player();
         this.market = new LinkedHashMap<>();
         this.addCommands();
@@ -181,9 +181,11 @@ public class Farm {
      */
     private void grow() {
         if(!Objects.equals(weather, Weather.DRY)) {
-            for(int[] pos : index()) {
-                Tile tile = tiles[pos[0]][pos[1]];
-                if(tile.crop() != null) tile.crop().grow();
+            for(Pos pos : index()) {
+                Tile tile = tiles[pos.row()][pos.col()];
+                if(tile != null && tile.crop() != null) {
+                    tile.crop().grow();
+                }
             }
         }
     }
@@ -194,9 +196,9 @@ public class Farm {
      */
     private void harvest(String[] args) {
         if(args.length < 3 && upgrades.contains(Upgrades.HARVEST)) {
-            for(int[] pos : index()) {
-                int row = pos[1];
-                int col = pos[2];
+            for(Pos pos : index()) {
+                int row = pos.row();
+                int col = pos.col();
                 Tile tile = tiles[row][col];
                 inventory().add(tile.crop().getId());
                 tile.crop().harvested();
@@ -260,8 +262,8 @@ public class Farm {
      * at the end of the day.
      */
     private void resetHarvest() {
-        for(int[] pos : index()) {
-            Tile tile = tiles[pos[0]][pos[1]];
+        for(Pos pos : index()) {
+            Tile tile = tiles[pos.row()][pos.col()];
             if(tile.crop() != null) {
                 tile.crop().resetHarvest();
             }
@@ -275,8 +277,8 @@ public class Farm {
     private void updateHydration() {
         int noneCount = 0, lowCount = 0, midCount = 0, highCount = 0, maxCount = 0;
 
-        for (int[] pos : index()) {
-            Tile tile = tiles[pos[0]][pos[1]];
+        for (Pos pos : index()) {
+            Tile tile = tiles[pos.row()][pos.col()];
             Hydration hydration = tile.crop().getHydration();
             switch (hydration) {
                 case NONE -> {
@@ -313,9 +315,12 @@ public class Farm {
      */
     private void irrigate(String[] args) {
         if(water > 0) {
-            for(int[] pos : index()) {
-                Tile tile = tiles[pos[0]][pos[1]];
-                tile.crop().water(Hydration.HIGH);
+            for(Pos pos : index()) {
+                if(water <= 0) { break; }
+                Tile tile = tiles[pos.row()][pos.col()];
+                if(tile != null && tile.crop() != null) {
+                    tile.crop().water(Hydration.HIGH);
+                }
                 water -= 1;
             }
             console().println(Localization.lang.t("game.irrigate.success", water));
@@ -354,8 +359,8 @@ public class Farm {
      */
     private void plant(String[] args) {
         if(args.length < 3 && upgrades.contains(Upgrades.PLANT)) {
-            for(int[] pos : index()) {
-                tiles[pos[1]][pos[2]] = new Tile(new Crop(CropID.random(season)),
+            for(Pos pos : index()) {
+                tiles[pos.row()][pos.col()] = new Tile(new Crop(CropID.random(season)),
                         Soil.SILT, Fertilizer.NONE);
             }
             return;
@@ -579,22 +584,29 @@ public class Farm {
      * Returns a list of all positions on the farm grid.
      * @return 2D array of row-column indices
      */
-    private int[][] index() {
-        List<int[]> positions = new ArrayList<>();
-        for(int row = 0; row < SIZE; row++) {
-            for(int col = 0; col < SIZE; col++) {
-                positions.add(new int[]{row, col});
-            }
-        }
-        return positions.toArray(new int[0][0]);
+    private List<Pos> index() {
+        return positions;
     }
 
     /**
      * Resizes the farm grid and updates indices array
-     * after buying new plots.
+     * after buying new plots. It's a wrapper for index
      */
     private void resize() {
-        indices = new int[SIZE * SIZE][2];
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                if (tiles[row][col] == null) {
+                    tiles[row][col] = new Tile(null, Soil.LOAM, Fertilizer.NONE);
+                }
+            }
+        }
+
+        positions = new ArrayList<>(SIZE * SIZE);
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                positions.add(new Pos(row, col));
+            }
+        }
     }
 
     /**
