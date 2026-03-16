@@ -127,16 +127,16 @@ public final class Game {
         } while(!console().equals(line, ";"));
 
         String[] lines = script.toString().split("\\R");
-        for (String l : lines) {
+        for(String l : lines) {
             String[] chain = l.split("\\s*&&\\s*");
-            for (String cmd : chain) {
+            for(String cmd : chain) {
                 cmd = cmd.trim();
                 if(cmd.isEmpty()) { continue; }
                 String[] parts = cmd.trim().split("\\s+");
-                if (parts.length == 0) { continue; }
+                if(parts.length == 0) { continue; }
                 String command = parts[0].toLowerCase();
                 Consumer<String[]> action = console().cmd().get(command);
-                if (action != null) {
+                if(action != null) {
                     action.accept(parts);
                     lastCommand = command;
                 }
