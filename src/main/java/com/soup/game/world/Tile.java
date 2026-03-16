@@ -36,4 +36,31 @@ import com.soup.game.intf.World;
  */
 @Data
 @World
-public record Tile(Crop crop, Soil soil, Fertilizer fertilizer) {}
+public record Tile(Crop crop, Soil soil, Fertilizer fertilizer) {
+    /**
+     * Replaces the old tile with a new crop, since records are immutable my design
+     * @param crop accepts the new {@link Crop}
+     * @return the new {@link Tile} instance
+     */
+    public Tile withCrop(Crop crop) {
+        return new Tile(crop, soil, fertilizer);
+    }
+
+    /**
+     * Replaces the old tile with a new soil type, since records are immutable my design
+     * @param soil accepts the new {@link Soil}
+     * @return the new {@link Tile} instance
+     */
+    public Tile withSoil(Soil soil) {
+        return new Tile(crop, soil, fertilizer);
+    }
+
+    /**
+     * Replaces the old tile with a new fertilizer, since records are immutable my design
+     * @param fertilizer accepts the new {@link Fertilizer}
+     * @return the new {@link Tile} instance
+     */
+    public Tile withFertilizer(Fertilizer fertilizer) {
+        return new Tile(crop, soil, fertilizer);
+    }
+}
