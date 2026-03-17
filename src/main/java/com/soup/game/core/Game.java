@@ -510,6 +510,18 @@ public final class Game {
         }
     }
 
+    private float yields() {
+        if(!Objects.equals(weather, Weather.DRY)) {
+            for(Pos pos : index()) {
+                Tile tile = tiles[pos.row()][pos.col()];
+                if(tile != null && tile.crop() != null) {
+                    return tile.crop().grow(tile.soil(), tile.fertilizer());
+                }
+            }
+        }
+        return 1f;
+    }
+
     /**
      * Harvests crops from the farm at a specified location or, if the player has
      * the {@link Upgrades#HARVEST_UPGRADE} upgrade, all harvestable crops on the farm.
@@ -558,7 +570,12 @@ public final class Game {
                 int row = pos.row();
                 int col = pos.col();
                 Tile tile = tiles[row][col];
-                inventory().add(tile.crop().getId());
+                int totalYield = Math.round(tile.crop().getId().getYield() *
+                        (tile.soil().getYieldModifier() +
+                                tile.crop().getYieldBonus()));
+                for(int i = 0; i < totalYield; i++) {
+                    inventory().add(tile.crop().getId());
+                }
                 tile.crop().harvested();
                 if(tile.crop().getId().regrows()) {
                     tile.crop().setStage(GrowthStage.SEED);
@@ -568,6 +585,7 @@ public final class Game {
                 console().println(Localization.lang.t("game.yields",
                         inventory().getQuantity(tile.crop().getId())), Console.PURPLE);
                 player.update(tile.crop().getId().getXp());
+                tile.crop().resetYieldBonus();
             }
             console().println(Localization.lang.t("game.harvest.success.all"),
                     Console.BRIGHT_GREEN);
@@ -607,7 +625,13 @@ public final class Game {
             return;
         }
 
-        inventory().add(tile.crop().getId());
+        int totalYield = Math.round(tile.crop().getId().getYield() *
+                (tile.soil().getYieldModifier() +
+                        tile.crop().getYieldBonus()));
+        for(int i = 0; i < totalYield; i++) {
+            inventory().add(tile.crop().getId());
+        }
+
         tile.crop().harvested();
         if(tile.crop().getId().regrows()) {
             tile.crop().setStage(GrowthStage.SEED);
@@ -615,6 +639,7 @@ public final class Game {
             tiles[row][col] = null;
         }
 
+        tile.crop().resetYieldBonus();
         console().println(Localization.lang.t("game.harvest.success",
                 tile.crop().getId().getName(), row, col), Console.BRIGHT_GREEN);
         player.update(tile.crop().getId().getXp());

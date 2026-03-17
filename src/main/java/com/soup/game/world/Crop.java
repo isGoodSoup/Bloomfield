@@ -23,6 +23,7 @@ public final class Crop {
     private Hydration hydration;
     private int daysToMature;
     private int days;
+    private float yieldBonus = 0f;
     private boolean wasHarvested;
     private boolean canHarvest;
     private boolean canRegrow;
@@ -58,7 +59,8 @@ public final class Crop {
      * @param soil the type of soil of the tile where the crop grows from
      * @param fertilizer the fertilizer type used into the crop
      */
-    public void grow(Soil soil, Fertilizer fertilizer) {
+    public float grow(Soil soil, Fertilizer fertilizer) {
+        float totalYield = 0f;
         if(!canHarvest) {
             days++;
             float soilGrowth = soil.getGrowthModifier();
@@ -70,8 +72,9 @@ public final class Crop {
             }
 
             if(Objects.equals(fertilizer, Fertilizer.YIELD)) {
-                soilYield += 0.8f;
+                yieldBonus += 0.8f;
             }
+            totalYield = id.getYield() * (soil.getYieldModifier() + yieldBonus);
 
             int steps = 1;
             if (soilGrowth >= 1.5f || soilYield >= 2.0f) {
@@ -87,12 +90,15 @@ public final class Crop {
                 canHarvest = true;
             }
         }
+        return totalYield;
     }
 
     /**
      * Withers the crop, preventing it from being harvested.
-     * <p>Sets the crop's harvest status to false and marks it as no longer
-     * able to mature.</p>
+     * <p>
+     * Sets the crop's harvest status to false and marks it as no longer
+     * able to mature.
+     * </p>
      */
     public void wither() {
         canHarvest = false;
@@ -242,5 +248,30 @@ public final class Crop {
         if(wasHarvested) { return ' '; }
         if(isWithered) { return 'X'; }
         return stage.name().charAt(0);
+    }
+
+    /**
+     * Returns the cumulative yield bonus applied to this crop.
+     * <p>
+     * This bonus is typically modified by fertilizers or other growth modifiers
+     * and is used to calculate the final yield when harvesting the crop.
+     * </p>
+     *
+     * @return the current yield bonus as a float
+     */
+    public float getYieldBonus() {
+        return yieldBonus;
+    }
+
+    /**
+     * Resets the yield bonus of this crop to zero.
+     * <p>
+     * This method is usually called after the crop is harvested to
+     * ensure that any temporary yield modifiers do not carry over
+     * to subsequent growth cycles.
+     * </p>
+     */
+    public void resetYieldBonus() {
+        yieldBonus = 0f;
     }
 }
