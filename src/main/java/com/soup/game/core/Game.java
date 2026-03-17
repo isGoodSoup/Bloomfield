@@ -510,18 +510,6 @@ public final class Game {
         }
     }
 
-    private float yields() {
-        if(!Objects.equals(weather, Weather.DRY)) {
-            for(Pos pos : index()) {
-                Tile tile = tiles[pos.row()][pos.col()];
-                if(tile != null && tile.crop() != null) {
-                    return tile.crop().grow(tile.soil(), tile.fertilizer());
-                }
-            }
-        }
-        return 1f;
-    }
-
     /**
      * Harvests crops from the farm at a specified location or, if the player has
      * the {@link Upgrades#HARVEST_UPGRADE} upgrade, all harvestable crops on the farm.

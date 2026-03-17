@@ -59,8 +59,7 @@ public final class Crop {
      * @param soil the type of soil of the tile where the crop grows from
      * @param fertilizer the fertilizer type used into the crop
      */
-    public float grow(Soil soil, Fertilizer fertilizer) {
-        float totalYield = 0f;
+    public void grow(Soil soil, Fertilizer fertilizer) {
         if(!canHarvest) {
             days++;
             float soilGrowth = soil.getGrowthModifier();
@@ -74,7 +73,6 @@ public final class Crop {
             if(Objects.equals(fertilizer, Fertilizer.YIELD)) {
                 yieldBonus += 0.8f;
             }
-            totalYield = id.getYield() * (soil.getYieldModifier() + yieldBonus);
 
             int steps = 1;
             if (soilGrowth >= 1.5f || soilYield >= 2.0f) {
@@ -90,7 +88,6 @@ public final class Crop {
                 canHarvest = true;
             }
         }
-        return totalYield;
     }
 
     /**
