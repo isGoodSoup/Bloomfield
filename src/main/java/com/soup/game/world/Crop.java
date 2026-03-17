@@ -66,6 +66,7 @@ public final class Crop {
 
             if(Objects.equals(fertilizer, Fertilizer.SPEED)) {
                 soilGrowth += 0.5f;
+                days += 1;
             }
 
             if(Objects.equals(fertilizer, Fertilizer.YIELD)) {

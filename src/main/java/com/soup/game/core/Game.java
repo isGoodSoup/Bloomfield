@@ -512,7 +512,7 @@ public final class Game {
 
     /**
      * Harvests crops from the farm at a specified location or, if the player has
-     * the {@link Upgrades#HARVEST} upgrade, all harvestable crops on the farm.
+     * the {@link Upgrades#HARVEST_UPGRADE} upgrade, all harvestable crops on the farm.
      * <p>
      * If the "all" keyword is used with the appropriate upgrade, this method
      * iterates over all farm tiles, adds harvested crops to the player's
@@ -552,7 +552,7 @@ public final class Game {
      *             </ul>
      */
     private void harvest(String[] args) {
-        if(args.length < 3 && upgrades.contains(Upgrades.HARVEST)
+        if(args.length < 3 && upgrades.contains(Upgrades.HARVEST_UPGRADE)
                 && console().equals(args[1], "all")) {
             for(Pos pos : index()) {
                 int row = pos.row();
@@ -740,7 +740,7 @@ public final class Game {
 
     /**
      * Plants a crop on the farm at a specified location or across all tiles if
-     * the player has the {@link Upgrades#PLANT} upgrade and uses the "all" keyword.
+     * the player has the {@link Upgrades#PLANT_UPGRADE} upgrade and uses the "all" keyword.
      * <p>
      * If the "all" keyword is used with the appropriate upgrade, a new random
      * crop is planted on every farm tile.
@@ -776,7 +776,7 @@ public final class Game {
      *             </ul>
      */
     private void plant(String[] args) {
-        if(args.length < 3 && upgrades.contains(Upgrades.PLANT) && console().equals(args[1], "all")) {
+        if(args.length < 3 && upgrades.contains(Upgrades.PLANT_UPGRADE) && console().equals(args[1], "all")) {
             for(Pos pos : index()) {
                 int row = pos.row();
                 int col = pos.col();
@@ -834,7 +834,7 @@ public final class Game {
      *     <li>{@code fertilize <type> <row> <col>} – applies the given fertilizer
      *         to a single tile.</li>
      *     <li>{@code fertilize <type> all} – applies the fertilizer using special
-     *         logic if the {@link Upgrades#FERTILIZER} upgrade is unlocked.</li>
+     *         logic if the {@link Upgrades#FERTILIZER_UPGRADE} upgrade is unlocked.</li>
      * </ul>
      *
      * <p><b>Behavior:</b></p>
@@ -882,7 +882,7 @@ public final class Game {
         }
 
         if(args.length >= 3 && console().equals(args[2], "all")
-                && upgrades.contains(Upgrades.FERTILIZER)) {
+                && upgrades.contains(Upgrades.FERTILIZER_UPGRADE)) {
 
             Fertilizer fertilizer = Arrays.stream(Fertilizer.values())
                     .filter(f -> f.name().equalsIgnoreCase(args[1]))
@@ -928,19 +928,21 @@ public final class Game {
 
         if(fertilizer == null) {
             console().println(Localization.lang.t("game.fertilize.invalid"),
-                    Console.BRIGHT_RED);
+                    Console.RED);
             return;
         }
 
         if(tiles[row][col].fertilizer() != Fertilizer.NONE) {
             console().println(Localization.lang.t("game.fertilize.done"),
-                    Console.BRIGHT_RED);
+                    Console.RED);
             return;
         }
 
         Tile tile = tiles[row][col].withFertilizer(fertilizer);
         tiles[row][col] = tile;
-        console().println(Localization.lang.t("game.fertilize.success", row, col));
+        inventory().remove(fertilizer);
+        console().println(Localization.lang.t("game.fertilize.success", row, col),
+                Console.BRIGHT_GREEN);
     }
 
     /**
@@ -1089,8 +1091,8 @@ public final class Game {
      *         command for repeated execution.</li>
      *     <li><b>Plot Expansion</b> – increases the farm size by a fixed amount,
      *         up to {@code MAX_SIZE}, and initializes new tiles.</li>
-     *     <li><b>Upgrades Bundle</b> – unlocks {@link Upgrades#HARVEST} and
-     *         {@link Upgrades#PLANT} commands.</li>
+     *     <li><b>Upgrades Bundle</b> – unlocks {@link Upgrades#HARVEST_UPGRADE} and
+     *         {@link Upgrades#PLANT_UPGRADE} commands.</li>
      * </ul>
      *
      * <p><b>Behavior:</b></p>
@@ -1207,8 +1209,8 @@ public final class Game {
                 }
                 case 5 -> {
                     player.take(cost);
-                    upgrades.add(Upgrades.HARVEST);
-                    upgrades.add(Upgrades.PLANT);
+                    upgrades.add(Upgrades.HARVEST_UPGRADE);
+                    upgrades.add(Upgrades.PLANT_UPGRADE);
                 }
                 default -> isBuying = false;
             }
