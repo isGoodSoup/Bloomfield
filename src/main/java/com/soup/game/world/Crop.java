@@ -1,9 +1,9 @@
 package com.soup.game.world;
 
-import com.soup.game.enums.CropID;
-import com.soup.game.enums.GrowthStage;
-import com.soup.game.enums.Hydration;
+import com.soup.game.enums.*;
 import com.soup.game.intf.World;
+
+import java.util.Objects;
 
 /**
  * Represents a crop in the farm game.
@@ -46,17 +46,41 @@ public final class Crop {
 
     /**
      * Advances the crop's growth by one day.
-     *
-     * <p>If the crop is not yet harvestable, its growth stage may advance
+     *<p>
+     * If the crop is not yet harvestable, its growth stage may advance
      * depending on the number of days passed. Once the crop reaches maturity,
-     * it becomes harvestable.</p>
+     * it becomes harvestable.
+     * </p>
+     * <p>
+     * If soil modifier equals or is bigger than a certain threshold, the growth
+     * skips a step
+     * </p>
+     * @param soil the type of soil of the tile where the crop grows from
+     * @param fertilizer the fertilizer type used into the crop
      */
-    public void grow() {
+    public void grow(Soil soil, Fertilizer fertilizer) {
         if(!canHarvest) {
             days++;
+            float soilGrowth = soil.getGrowthModifier();
+            float soilYield = soil.getYieldModifier();
+
+            if(Objects.equals(fertilizer, Fertilizer.SPEED)) {
+                soilGrowth += 0.5f;
+            }
+
+            if(Objects.equals(fertilizer, Fertilizer.YIELD)) {
+                soilYield += 0.8f;
+            }
+
+            int steps = 1;
+            if (soilGrowth >= 1.5f || soilYield >= 2.0f) {
+                steps++;
+            }
+
             int stageLength = Math.max(1, daysToMature / GrowthStage.values().length);
-            if(days % stageLength == 0 && stage != GrowthStage.HARVESTABLE) {
-                stage = stage.next();
+            if(days % stageLength == 0 && stage != GrowthStage.HARVESTABLE
+                    || soilGrowth >= 1.0f) {
+                stage = stage.next(steps);
             }
             if(days == daysToMature) {
                 canHarvest = true;

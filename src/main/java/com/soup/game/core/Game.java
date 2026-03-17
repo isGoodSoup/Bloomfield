@@ -242,6 +242,7 @@ public final class Game {
         console().cmd().put("rip", this::rip);
         console().cmd().put("water", this::irrigate);
         console().cmd().put("plant", this::plant);
+        console().cmd().put("fertilize", this::fertilize);
         console().cmd().put("get", this::get);
         console().cmd().put("view", this::update);
         console().cmd().put("show", args -> update());
@@ -380,8 +381,8 @@ public final class Game {
      * Usage:
      *  for <times> <command> [args...]
      * Example:
-     *  for 4 plant 2 0
-     *  → runs "plant 2 0" four times
+     *  for 4 {@link #plant} 2 0
+     *  → runs "{@link #plant} 2 0" four times
      * @param args the arguments passed from the console
      */
     private void forLoop(String[] args) {
@@ -503,7 +504,7 @@ public final class Game {
             for(Pos pos : index()) {
                 Tile tile = tiles[pos.row()][pos.col()];
                 if(tile != null && tile.crop() != null) {
-                    tile.crop().grow();
+                    tile.crop().grow(tile.soil(), tile.fertilizer());
                 }
             }
         }
@@ -775,7 +776,9 @@ public final class Game {
     private void plant(String[] args) {
         if(args.length < 3 && upgrades.contains(Upgrades.PLANT) && console().equals(args[1], "all")) {
             for(Pos pos : index()) {
-                tiles[pos.row()][pos.col()] = new Tile(new Crop(CropID.id.random(season)),
+                int row = pos.row();
+                int col = pos.col();
+                tiles[row][col] = new Tile(new Crop(CropID.id.random(season)),
                         Soil.SILT, Fertilizer.NONE);
             }
             return;
@@ -1031,6 +1034,7 @@ public final class Game {
     private void buy() {
         market.clear();
         market.put(100, Localization.lang.t("market.water"));
+        market.put(200, Localization.lang.t("market.fertilizer"));
         market.put(500, Localization.lang.t("market.for"));
         market.put(8_192, Localization.lang.t("market.plot"));
         market.put(12_288, Localization.lang.t("market.upgrades"));
@@ -1047,11 +1051,11 @@ public final class Game {
                 String price = entry.getKey().toString();
                 String name = entry.getValue();
                 String spaces = " ".repeat(maxPriceWidth - price.length() + 2);
-                console().println(price + spaces + name + " gold", Console.PURPLE);
+                console().println(price + " gold" + spaces + name, Console.PURPLE);
             }
 
             while(r > market.size()) {
-                r = console().replyNum(Localization.lang.t("market.query"));
+                r = console().replyNum(Localization.lang.t("market.query") + " ");
             }
 
             List<Map.Entry<Integer, String>> items = new ArrayList<>(market.entrySet());
@@ -1062,14 +1066,6 @@ public final class Game {
 
             switch(r) {
                 case 1 -> {
-                    int cost = 0;
-                    for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(console().equals(entries.getValue(), Localization.lang.t(
-                                "market.water"))) {
-                            cost = entries.getKey();
-                        }
-                    }
-
                     if(player.purse() < cost) {
                         console().println(Localization.lang.t("market.funds"),
                                 Console.BRIGHT_RED);
@@ -1077,19 +1073,26 @@ public final class Game {
                     }
 
                     player.take(cost);
-                    water += 0.5f;
+                    water += 1f;
                     console().println(Localization.lang.t("market.bought",
                             "market.water", player.purse()), Console.BRIGHT_GREEN);
                 }
                 case 2 -> {
-                    int cost = 0;
-                    for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(console().equals(entries.getValue(), Localization.lang.t(
-                                "market.for"))) {
-                            cost = entries.getKey();
-                        }
+                    if(player.purse() < cost) {
+                        console().println(Localization.lang.t("market.funds"),
+                                Console.BRIGHT_RED);
+                        return;
                     }
 
+                    player.take(cost);
+                    for(int i = 0; i < 16; i++) {
+                        inventory().add(Fertilizer.SPEED);
+                        inventory().add(Fertilizer.YIELD);
+                    }
+                    console().println(Localization.lang.t("market.bought",
+                            "market.fertilizer", player.purse()), Console.BRIGHT_GREEN);
+                }
+                case 3 -> {
                     if(player.purse() < cost) {
                         console().println(Localization.lang.t("market.funds"),
                                 Console.BRIGHT_RED);
@@ -1101,17 +1104,8 @@ public final class Game {
                     console().println(Localization.lang.t("market.bought",
                             "market.for", player.purse()), Console.BRIGHT_GREEN);
                 }
-                case 3 -> {
-                    int cost = 0;
+                case 4 -> {
                     int increase = 2;
-
-                    for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(console().equals(entries.getValue(), Localization.lang.t(
-                                "market.plot"))) {
-                            cost = entries.getKey();
-                        }
-                    }
-
                     if(player.purse() < cost) {
                         console().println(Localization.lang.t("game.plot.fail"),
                                 Console.BRIGHT_RED);
@@ -1132,14 +1126,7 @@ public final class Game {
                     console().println(Localization.lang.t("market.bought.plot",
                             newPlots, player.purse()), Console.BRIGHT_GREEN);
                 }
-                case 4 -> {
-                    int cost = 0;
-                    for(Map.Entry<Integer, String> entries : market.entrySet()) {
-                        if(console().equals(entries.getValue(), Localization.lang.t(
-                                "market.upgrades"))) {
-                            cost = entries.getKey();
-                        }
-                    }
+                case 5 -> {
                     player.take(cost);
                     upgrades.add(Upgrades.HARVEST);
                     upgrades.add(Upgrades.PLANT);
@@ -1157,6 +1144,7 @@ public final class Game {
      * <ul>
      *     <li>Adds the specified crop to the player's inventory if it exists.</li>
      *     <li>Adds the specified upgrade to the player's upgrades if it exists.</li>
+     *     <li>Adds the specified fertilizer to the player's inventory if it exists</li>
      *     <li>Adds water or gold directly to the player if specified.</li>
      * </ul>
      * After applying the grant, the game is forcibly ended to reflect
@@ -1201,6 +1189,18 @@ public final class Game {
             }
         }
 
+        for(int i = 0; i < quantity; i++) {
+            Fertilizer fertilizer;
+            for(Fertilizer f : Fertilizer.values()) {
+                if(console().equals("f." + f.name().toLowerCase(), item)) {
+                    fertilizer = f;
+                    inventory().add(fertilizer);
+                    item = "fertilizer." + f.name().toLowerCase();
+                    break;
+                }
+            }
+        }
+
         if(console().equals(item, "water")) {
             water += quantity;
         }
@@ -1211,7 +1211,7 @@ public final class Game {
 
         console().println(Localization.lang.t("game.give.success",
                 item, quantity), Console.BRIGHT_GREEN);
-//        forceEnd();
+        forceEnd();
     }
 
     /**
