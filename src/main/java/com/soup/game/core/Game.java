@@ -232,22 +232,8 @@ public final class Game {
             for(String cmd : chain) {
                 cmd = cmd.trim();
                 if(cmd.isEmpty()) { continue; }
-                String[] parts = tokenize(cmd);
-                if(parts.length == 0) { continue; }
-                String command = parts[0].toLowerCase();
-                Consumer<String[]> action = console().cmd().get(command);
-                if(action != null) {
-                    totalCmd++;
-                    action.accept(parts);
-                    lastCommand = command;
-                } else {
-                    console().println(Localization.lang.t("game.cmd.unknown", parts[0]),
-                            Console.RED);
-                }
-            }
-
-            if(doSleep(lastCommand)) {
-                return;
+                String[] tokens = tokenize(cmd);
+                runFor(1, tokens, 0, new LinkedHashMap<>(), 0);
             }
         }
     }
@@ -302,7 +288,6 @@ public final class Game {
         console().cmd().put("?", this::showHelp);
         console().cmd().put(".", this::redo);
         console().cmd().put("var", this::var);
-        console().cmd().put("for", this::forLoop);
         console().cmd().put("harvest", this::harvest);
         console().cmd().put("rip", this::rip);
         console().cmd().put("water", this::irrigate);
@@ -442,46 +427,6 @@ public final class Game {
     }
 
     /**
-     * Executes a command multiple times using a for-like syntax.
-     * Usage:
-     *  for <times> <command> [args...]
-     * Example:
-     *  for 4 {@link #plant} 2 0
-     *  → runs "{@link #plant} 2 0" four times
-     * @param args the arguments passed from the console
-     */
-    private void forLoop(String[] args) {
-        if(!upgrades.contains(Upgrades.FOR_LOOP)) {
-            console().println(Localization.lang.t("game.upgrade.locked"), Console.RED);
-            return;
-        }
-
-        if(args.length < 3) {
-            console().println(Localization.lang.t("game.for.usage"), Console.PURPLE);
-            return;
-        }
-
-        Object rawTimes = getVar(args[1]);
-        int times;
-        if(rawTimes instanceof Number) {
-            times = ((Number) rawTimes).intValue();
-        } else {
-            try { times = Integer.parseInt(rawTimes.toString()); }
-            catch(NumberFormatException e) {
-                console().error("Invalid number of times: " + args[1]);
-                return;
-            }
-        }
-        if(times <= 0) {
-            console().error("Number of times must be greater than 0: " + times);
-            return;
-        }
-
-        String[] sub = Arrays.copyOfRange(args, 2, args.length);
-        runFor(times, sub, 0, new LinkedHashMap<>(), 0);
-    }
-
-    /**
      * Executes a loop a fixed number of times over a tokenized command stream.
      * <p>
      * This method is the core driver for the custom {@code for} construct. It binds
@@ -503,16 +448,15 @@ public final class Game {
      * @param depth   the current nesting depth, used to determine index variable names
      *
      * @see #execute(String[], int, Map, int)
-     * @see #getIndexLetter(int)
+     * @see #letter(int)
      */
     private void runFor(int times, String[] tokens, int pos,
                         Map<String, Integer> indices, int depth) {
-
-        for (int i = 0; i < times; i++) {
-            String indexLetter = getIndexLetter(depth);
-            indices.put(indexLetter, i);
-            execute(tokens, pos, indices, depth);
-            indices.remove(indexLetter);
+        for(int i = 0; i < times; i++) {
+            Map<String, Integer> itIndices = new LinkedHashMap<>(indices);
+            String indexLetter = letter(depth);
+            itIndices.put(indexLetter, i);
+            execute(tokens, pos, itIndices, depth + 1);
         }
     }
 
@@ -535,7 +479,7 @@ public final class Game {
      *
      * <p>
      * Before execution, all arguments are processed through
-     * {@link #replacePlaceholders(String[], Map)} to resolve loop indices (e.g. {@code +i})
+     * {@link #replace(String[], Map)} to resolve loop indices (e.g. {@code +i})
      * and variable references.
      * </p>
      *
@@ -545,7 +489,7 @@ public final class Game {
      * @param depth   the current nesting depth for loop index resolution
      *
      * @see #runFor(int, String[], int, Map, int)
-     * @see #replacePlaceholders(String[], Map)
+     * @see #replace(String[], Map)
      */
     private void execute(String[] tokens, int pos,
                          Map<String, Integer> indices, int depth) {
@@ -607,9 +551,12 @@ public final class Game {
             return;
         }
 
-        String[] rawArgs = Arrays.copyOfRange(tokens, pos, tokens.length);
-        String[] finalArgs = replacePlaceholders(rawArgs, indices);
-        action.accept(finalArgs);
+        String[] rawArgs = Arrays.copyOfRange(tokens, pos + 1, tokens.length);
+        String[] finalArgs = replace(rawArgs, indices);
+        String[] awc = new String[finalArgs.length + 1];
+        awc[0] = token;
+        System.arraycopy(finalArgs, 0, awc, 1, finalArgs.length);
+        action.accept(awc);
     }
 
     /**
@@ -624,7 +571,7 @@ public final class Game {
      * @return the corresponding index variable name as a string
      * @throws IllegalStateException if the nesting depth exceeds supported range
      */
-    private String getIndexLetter(int depth) {
+    private String letter(int depth) {
         char c = (char) ('i' + depth);
         if(c > 'z') throw new IllegalStateException("Too many nested loops (>18)");
         return String.valueOf(c);
@@ -652,7 +599,7 @@ public final class Game {
      *
      * @see #getVar(String)
      */
-    private String[] replacePlaceholders(String[] args, Map<String, Integer> indices) {
+    private String[] replace(String[] args, Map<String, Integer> indices) {
         String[] result = args.clone();
         for(int k = 0; k < result.length; k++) {
             String arg = result[k];
@@ -731,7 +678,7 @@ public final class Game {
      */
     private void grow() {
         if(!Objects.equals(weather, Weather.DRY)) {
-            for(Pos pos : index()) {
+            for(Pos pos : letter()) {
                 Tile tile = tiles[pos.row()][pos.col()];
                 if(tile != null && tile.crop() != null) {
                     tile.crop().grow(tile.soil(), tile.fertilizer(),
@@ -785,7 +732,7 @@ public final class Game {
     private void harvest(String[] args) {
         if(args.length < 3 && upgrades.contains(Upgrades.HARVEST_UPGRADE)
                 && console().equals(args[1], "all")) {
-            for(Pos pos : index()) {
+            for(Pos pos : letter()) {
                 int row = pos.row();
                 int col = pos.col();
                 Tile tile = tiles[row][col];
@@ -869,7 +816,7 @@ public final class Game {
      * at the end of the day.
      */
     private void resetHarvest() {
-        for(Pos pos : index()) {
+        for(Pos pos : letter()) {
             Tile tile = tiles[pos.row()][pos.col()];
             if(tile != null && tile.crop() != null) {
                 tile.crop().resetHarvest();
@@ -885,7 +832,7 @@ public final class Game {
         int totalHydration = 0;
         int cropCount = 0;
 
-        for(Pos pos : index()) {
+        for(Pos pos : letter()) {
             Tile tile = tiles[pos.row()][pos.col()];
             if(tile != null && tile.crop() != null) {
                 tile.crop().decay();
@@ -1020,12 +967,15 @@ public final class Game {
      *             </ul>
      */
     private void plant(String[] args) {
-        if(args.length < 3 && upgrades.contains(Upgrades.PLANT_UPGRADE) && console().equals(args[1], "all")) {
-            for(Pos pos : index()) {
+        if(args.length >= 2 && upgrades.contains(Upgrades.PLANT_UPGRADE)
+                && console().equals(args[1], "all")) {
+            for(Pos pos : letter()) {
                 int row = pos.row();
                 int col = pos.col();
-                tiles[row][col] = new Tile(new Crop(CropID.id.random(season)),
-                        Soil.SILT, Fertilizer.NONE);
+                if(tiles[row][col] == null) {
+                    tiles[row][col] = new Tile(new Crop(CropID.id.random(season)),
+                            Soil.SILT, Fertilizer.NONE);
+                }
             }
             console().println(Localization.lang.t("game.plant.success.all"),
                     Console.BRIGHT_GREEN);
@@ -1629,7 +1579,7 @@ public final class Game {
      * Returns a list of all positions on the farm grid.
      * @return 2D array of row-column indices
      */
-    private List<Pos> index() {
+    private List<Pos> letter() {
         positions = new ArrayList<>(SIZE * SIZE);
         for(int row = 0; row < SIZE; row++) {
             for(int col = 0; col < SIZE; col++) {
@@ -1651,7 +1601,7 @@ public final class Game {
                 }
             }
         }
-        index();
+        letter();
     }
 
     /**
