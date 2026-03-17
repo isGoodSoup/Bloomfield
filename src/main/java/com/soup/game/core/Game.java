@@ -236,6 +236,7 @@ public final class Game {
     private void addCommands() {
         console().cmd().put("?", this::showHelp);
         console().cmd().put(".", this::redo);
+        console().cmd().put("var", this::var);
         console().cmd().put("for", this::forLoop);
         console().cmd().put("while", this::whileLoop);
         console().cmd().put("harvest", this::harvest);
@@ -391,37 +392,45 @@ public final class Game {
             return;
         }
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.for.usage"),
-                    Console.PURPLE);
+            console().println(Localization.lang.t("game.for.usage"), Console.PURPLE);
             return;
         }
 
+        Object rawTimes = getVar(args[1]);
         int times;
-        try {
-            times = Integer.parseInt(args[1]);
-            if(times <= 0) throw new NumberFormatException();
-        } catch(NumberFormatException e) {
-            console().error("Invalid number of times: " + args[1]);
+
+        if(rawTimes instanceof Number) {
+            times = ((Number) rawTimes).intValue();
+        } else {
+            try {
+                times = Integer.parseInt(rawTimes.toString());
+            } catch (NumberFormatException e) {
+                console().error("Invalid number of times: " + args[1]);
+                return;
+            }
+        }
+
+        if(times <= 0) {
+            console().error("Number of times must be greater than 0: " + times);
             return;
         }
 
         String command = args[2];
         String[] commandArgs = Arrays.copyOfRange(args, 2, args.length);
         Consumer<String[]> action = console().cmd().get(command);
+
         if(action == null) {
             console().println(Localization.lang.t("game.cmd.unknown", command), Console.RED);
             return;
         }
 
-        for (int i = 0; i < times; i++) {
+        for(int i = 0; i < times; i++) {
             String[] internalArgs = commandArgs.clone();
-            for (int k = 1; k < internalArgs.length; k++) {
-                if(internalArgs[k].startsWith("+i")) {
-                    internalArgs[k] = String.valueOf(i);
-                }
-                if(internalArgs[k].startsWith("+j")) {
-                    internalArgs[k] = String.valueOf(i);
-                }
+            for(int k = 1; k < internalArgs.length; k++) {
+                if(internalArgs[k].startsWith("+i")) { internalArgs[k] = String.valueOf(i); }
+                if(internalArgs[k].startsWith("+j")) { internalArgs[k] = String.valueOf(i); }
+                Object varValue = getVar(internalArgs[k]);
+                if(varValue != null) { internalArgs[k] = varValue.toString(); }
             }
             action.accept(internalArgs);
         }
@@ -441,21 +450,6 @@ public final class Game {
      * </pre>
      * This will repeatedly execute the "water" command as long as {@code water > 0}.
      * </p>
-     * <p>
-     * Supported conditions (as of now):
-     * <ul>
-     *     <li>{@code water>0} – loops while the player has water remaining.</li>
-     *     <li>{@code coins>0} – loops while the player has more than 100 coins.</li>
-     * </ul>
-     * </p>
-     * <p>
-     * Notes:
-     * <ul>
-     *     <li>If an unknown condition is provided, the loop will not execute and an error is printed.</li>
-     *     <li>If the command is unknown or invalid, an error is printed and the loop is skipped.</li>
-     * </ul>
-     * </p>
-     *
      * @param args an array of strings representing the loop arguments:
      *             <ul>
      *                 <li>args[0] – the keyword "while"</li>
@@ -493,6 +487,65 @@ public final class Game {
         while(condition.get()) {
             action.accept(commandArgs);
         }
+    }
+
+    /**
+     * Assigns a value to a named variable in the console's variable store.
+     * <p>
+     * The expected command format is: <code>var &lt;name&gt; = &lt;value&gt;</code>.
+     * Supports numeric values (integer or decimal) and strings. Numeric strings
+     * are automatically parsed into {@link Integer} or {@link Double}.
+     * <p>
+     * Example usage:
+     * <pre>
+     * var times = 6
+     * var playerName = John
+     * </pre>
+     *
+     * @param args the command arguments, where
+     *             <ul>
+     *                 <li>args[1] is the variable name</li>
+     *                 <li>args[2] must be "="</li>
+     *                 <li>args[3] is the value to assign</li>
+     *             </ul>
+     */
+    private void var(String[] args) {
+        if(args.length < 4 || !args[2].equalsIgnoreCase("=")) {
+            console().println(Localization.lang.t("game.var.usage"), Console.PURPLE);
+            return;
+        }
+
+        String name = args[1];
+        String valueStr = args[3];
+        Object value;
+
+        try {
+            if(valueStr.contains(".")) {
+                value = Double.parseDouble(valueStr);
+            } else {
+                value = Integer.parseInt(valueStr);
+            }
+        } catch (NumberFormatException e) {
+            value = valueStr;
+        }
+
+        console().var().put(name, value);
+    }
+
+    /**
+     * Retrieves the value of a named variable from the console's variable store.
+     * <p>
+     * If the variable exists, returns its stored value. If the variable does not
+     * exist, returns the input name itself as a fallback.
+     * <p>
+     * This method is used to dynamically resolve variables in commands such as loops
+     * or conditional operations.
+     *
+     * @param name the name of the variable to retrieve
+     * @return the stored value of the variable, or the input name if not found
+     */
+    private Object getVar(String name) {
+        return console().var().getOrDefault(name, name);
     }
 
     /**
@@ -1306,7 +1359,7 @@ public final class Game {
 
         console().println(Localization.lang.t("game.give.success",
                 item, quantity), Console.BRIGHT_GREEN);
-        forceEnd();
+//        forceEnd();
     }
 
     /**
@@ -1416,7 +1469,7 @@ public final class Game {
     private void resize() {
         for(int row = 0; row < SIZE; row++) {
             for(int col = 0; col < SIZE; col++) {
-                if (tiles[row][col] == null) {
+                if(tiles[row][col] == null) {
                     tiles[row][col] = new Tile(null, Soil.LOAM, Fertilizer.NONE);
                 }
             }

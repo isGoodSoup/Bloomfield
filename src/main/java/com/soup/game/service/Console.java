@@ -33,6 +33,7 @@ public class Console {
      * </p>
      */
     public static final Console cli = new Console();
+    private static final Map<String, Object> variables = new LinkedHashMap<>();
     private final Scanner scan = new Scanner(System.in);
     private final Map<String, Consumer<String[]>> commands = new LinkedHashMap<>();
 
@@ -60,6 +61,10 @@ public class Console {
      */
     public Map<String, Consumer<String[]>> cmd() {
         return commands;
+    }
+
+    public Map<String, Object> var() {
+        return variables;
     }
 
     /**
