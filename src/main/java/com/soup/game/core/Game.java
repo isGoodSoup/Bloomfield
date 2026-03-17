@@ -889,9 +889,18 @@ public final class Game {
                     .findFirst()
                     .orElse(null);
 
-            for(int r = 0; r < SIZE; r++) {
-                for(int c = 0; c < SIZE; c++) {
-                    tiles[r][c] = tiles[r][c].withFertilizer(fertilizer);
+            if(inventory().getQuantity(fertilizer) < SIZE) {
+                console().println(Localization.lang.t("game.fertilize.fail"),
+                        Console.BRIGHT_RED);
+                return;
+            }
+
+            while(inventory().getQuantity(fertilizer) > SIZE) {
+                for(int r = 0; r < SIZE; r++) {
+                    for(int c = 0; c < SIZE; c++) {
+                        tiles[r][c] = tiles[r][c].withFertilizer(fertilizer);
+                        inventory().remove(fertilizer);
+                    }
                 }
             }
 
