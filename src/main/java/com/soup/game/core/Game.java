@@ -1054,6 +1054,12 @@ public final class Game {
                 r = console().replyNum(Localization.lang.t("market.query"));
             }
 
+            List<Map.Entry<Integer, String>> items = new ArrayList<>(market.entrySet());
+            Map.Entry<Integer, String> selected = items.get(r - 1);
+
+            int cost = selected.getKey();
+            String item = selected.getValue();
+
             switch(r) {
                 case 1 -> {
                     int cost = 0;
