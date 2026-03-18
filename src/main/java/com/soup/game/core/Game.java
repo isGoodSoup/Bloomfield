@@ -184,10 +184,48 @@ public final class Game {
     }
 
     /**
-     * Main game loop.
-     * For each day, it displays the day number, updates season and weather,
-     * grows crops, updates the farm display, processes player commands, and
-     * resets harvested crops.
+     * Main game loop for the roguelike farming simulation.
+     *
+     * <p>
+     * This method drives the core progression of the game. Each iteration of the
+     * loop represents a fraction of a day and includes:
+     * </p>
+     *
+     * <ul>
+     *     <li>Displaying the current day number and total days</li>
+     *     <li>Updating the season and weather</li>
+     *     <li>Updating all game entities, including crops and animals via {@link #barn}</li>
+     *     <li>Advancing in-game time in increments until the player sleeps, the day ends, or the game ends</li>
+     *     <li>Processing player commands through the F+ console interface</li>
+     *     <li>Resetting harvested crops at the end of the day</li>
+     * </ul>
+     *
+     * <p><b>Animal Integration:</b></p>
+     * <ul>
+     *     <li>{@link Barn.#update()} is called once per game loop iteration to update all
+     *         animals, handling feeding, sleeping, production, and aging</li>
+     *     <li>Animals that are dead are automatically removed, and breeding logic can be triggered separately</li>
+     * </ul>
+     *
+     * <p><b>Time Progression:</b></p>
+     * <ul>
+     *     <li>The in-game clock starts at {@code hours = 6f} each loop</li>
+     *     <li>Time advances in increments of {@code 0.2f} per inner loop iteration</li>
+     *     <li>If {@code hours >= HOURS} (end of day) or the player chooses to sleep,
+     *         the day counter is incremented and crops are grown via {@link #grow()}</li>
+     * </ul>
+     *
+     * <p><b>Loop Termination:</b></p>
+     * <ul>
+     *     <li>The loop ends if the player enters the "end" command</li>
+     *     <li>The loop also ends if {@code isGameOver} becomes true</li>
+     * </ul>
+     *
+     * @see #barn
+     * @see #update()
+     * @see #grow()
+     * @see #resetHarvest()
+     * @see #console()
      */
     private void loop() {
         while(!console().equals(lastCommand, "end") && !isGameOver) {
@@ -195,6 +233,7 @@ public final class Game {
             season();
             weather();
             update();
+            barn.update();
             hours = 6f;
             do {
                 run();
@@ -428,7 +467,6 @@ public final class Game {
             sb.append("\n");
         }
         console().print(sb.toString());
-        barn.update();
     }
 
     /**
