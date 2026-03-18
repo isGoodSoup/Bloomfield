@@ -128,6 +128,8 @@ public final class Game {
         this.upgrades = new ArrayList<>();
         upgrades.add(Upgrades.NULL);
 
+        upgrades.add(Upgrades.FOR_LOOP);
+
         console().println("Farmlet, a terminal farm", Console.PURPLE);
         console().println(Localization.lang.t("game.welcome", player.title()),
                 Console.BRIGHT_GREEN);
@@ -524,7 +526,7 @@ public final class Game {
         }
 
         if(token != null && token.equals("if")) {
-            if(pos + 3 >= tokens.length) {
+            if(pos + 4 >= tokens.length) {
                 console().println(Localization.lang.t("game.if.usage"), Console.PURPLE);
                 return;
             }
@@ -532,23 +534,27 @@ public final class Game {
             String left = tokens[pos + 1];
             String op = tokens[pos + 2];
             String right = tokens[pos + 3];
-            Object result = evaluate(left, op, right, indices);
 
+            Object result = evaluate(left, op, right, indices);
             if(!(result instanceof Boolean)) {
                 console().error(Localization.lang.t("game.error.condition"));
                 return;
             }
 
-            boolean condition = (Boolean) result;
-            if(condition) {
-                String[] body = Arrays.copyOfRange(tokens, pos + 4, tokens.length);
+            if(!tokens[pos + 4].equalsIgnoreCase("then")) {
+                console().println(Localization.lang.t("game.if.usage"), Console.PURPLE);
+                return;
+            }
+
+            String[] body = Arrays.copyOfRange(tokens, pos + 5, tokens.length);
+            if((Boolean) result) {
                 execute(body, 0, indices, depth);
             }
             return;
         }
 
         Consumer<String[]> action = console().cmd().get(token);
-        if (action == null) {
+        if(action == null) {
             console().println(Localization.lang.t("game.cmd.unknown", token), Console.RED);
             return;
         }
@@ -688,7 +694,7 @@ public final class Game {
         String valueStr = args[3];
         Object value;
 
-        if (args.length == 6 && args[4].matches("[+\\-*/]")) {
+        if(args.length == 6 && args[4].matches("[+\\-*/]")) {
             value = evaluate(args[3], args[4], args[5],
                     new LinkedHashMap<>());
         } else {
