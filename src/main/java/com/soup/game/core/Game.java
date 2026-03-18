@@ -8,6 +8,7 @@ import com.soup.game.service.Console;
 import com.soup.game.service.Inventory;
 import com.soup.game.service.Localization;
 import com.soup.game.service.Pos;
+import com.soup.game.world.Barn;
 import com.soup.game.world.Crop;
 import com.soup.game.world.Tile;
 
@@ -92,6 +93,7 @@ public final class Game {
     private static final float HOURS = 24f;
     private final Player player;
     private final Tile[][] tiles;
+    private final Barn barn;
     private final Map<Integer, String> market;
     private List<Pos> positions;
     private final List<Upgrades> upgrades;
@@ -120,6 +122,7 @@ public final class Game {
     public Game() {
         Localization.lang.setLocale(Locale.forLanguageTag("en"));
         this.tiles = new Tile[MAX_SIZE][MAX_SIZE];
+        this.barn = new Barn();
         this.player = new Player();
         this.market = new LinkedHashMap<>();
         this.addCommands();
@@ -425,6 +428,7 @@ public final class Game {
             sb.append("\n");
         }
         console().print(sb.toString());
+        barn.update();
     }
 
     /**
