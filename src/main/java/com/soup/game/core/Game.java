@@ -388,8 +388,7 @@ public final class Game {
         }
 
         if(startRow < 0 || startRow >= SIZE || startCol < 0 || startCol >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
@@ -494,8 +493,7 @@ public final class Game {
         String token = tokens[pos];
         if(token != null && token.equals("for")) {
             if(!upgrades.contains(Upgrades.FOR_LOOP)) {
-                console().println(Localization.lang.t("game.upgrade.locked"),
-                        Console.BRIGHT_RED);
+                console().error(Localization.lang.t("game.upgrade.locked"));
                 return;
             }
 
@@ -525,15 +523,28 @@ public final class Game {
             return;
         }
 
-        if(token != null && (token.equals("while") || token.equals("if"))) {
+        if(token != null && token.equals("if")) {
             if(pos + 3 >= tokens.length) {
-                console().println(
-                        Localization.lang.t(token.equals("while") ? "game.while.usage" : "game.if.usage"),
-                        Console.PURPLE);
+                console().println(Localization.lang.t("game.if.usage"), Console.PURPLE);
                 return;
             }
 
-            // TODO
+            String left = tokens[pos + 1];
+            String op = tokens[pos + 2];
+            String right = tokens[pos + 3];
+            Object result = evaluate(left, op, right, indices);
+
+            if(!(result instanceof Boolean)) {
+                console().error(Localization.lang.t("game.error.condition"));
+                return;
+            }
+
+            boolean condition = (Boolean) result;
+            if(condition) {
+                String[] body = Arrays.copyOfRange(tokens, pos + 4, tokens.length);
+                execute(body, 0, indices, depth);
+            }
+            return;
         }
 
         Consumer<String[]> action = console().cmd().get(token);
@@ -566,17 +577,28 @@ public final class Game {
      */
     private Object evaluate(String leftVar, String op, String rightVar,
                             Map<String, Integer> indices) {
-        float a = Integer.parseInt(getVar(leftVar).toString());
-        float b = Integer.parseInt(getVar(rightVar).toString());
+        Object leftValue = getVar(leftVar);
+        Object rightValue = getVar(rightVar);
+        if(leftValue == null) { leftValue = leftVar; }
+        if(rightValue == null) { rightValue = rightVar; }
+
+        double a, b;
+        try {
+            a = Double.parseDouble(leftValue.toString());
+            b = Double.parseDouble(rightValue.toString());
+        } catch(NumberFormatException e) {
+            console().error(Localization.lang.t("game.error.number"));
+            return 0;
+        }
 
         return switch(op) {
-            case "+" -> (int) a + b;
-            case "-" -> (int) a - b;
-            case "*" -> (int) a * b;
-            case "/" -> (int) a / b;
-            case "<" -> (a < b);
-            case ">" -> (a > b);
-            case "==" -> (a == b);
+            case "+" -> a + b;
+            case "-" -> a - b;
+            case "*" -> a * b;
+            case "/" -> a / b;
+            case "<" -> a < b;
+            case ">" -> a > b;
+            case "==" -> a == b;
             default -> 0;
         };
     }
@@ -666,14 +688,19 @@ public final class Game {
         String valueStr = args[3];
         Object value;
 
-        try {
-            if(valueStr.contains(".")) {
-                value = Double.parseDouble(valueStr);
-            } else {
-                value = Integer.parseInt(valueStr);
+        if (args.length == 6 && args[4].matches("[+\\-*/]")) {
+            value = evaluate(args[3], args[4], args[5],
+                    new LinkedHashMap<>());
+        } else {
+            try {
+                if(valueStr.contains(".")) {
+                    value = Double.parseDouble(valueStr);
+                } else {
+                    value = Integer.parseInt(valueStr);
+                }
+            } catch (NumberFormatException e) {
+                value = valueStr;
             }
-        } catch (NumberFormatException e) {
-            value = valueStr;
         }
         console().var().put(name, value);
     }
@@ -795,21 +822,18 @@ public final class Game {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
         Tile tile = tiles[row][col];
         if(tile.crop() == null) {
-            console().println(Localization.lang.t("game.harvest.nothing"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.harvest.nothing"));
             return;
         }
 
         if(!tile.crop().canHarvest()) {
-            console().println(Localization.lang.t("game.harvest.not_ready"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.harvest.not_ready"));
             return;
         }
 
@@ -1019,14 +1043,12 @@ public final class Game {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
         if(tiles[row][col] != null) {
-            console().println(Localization.lang.t("game.plant.occupied"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.plant.occupied"));
             return;
         }
 
@@ -1106,8 +1128,7 @@ public final class Game {
                     .orElse(null);
 
             if(inventory().getQuantity(fertilizer) < SIZE) {
-                console().println(Localization.lang.t("game.fertilize.fail"),
-                        Console.BRIGHT_RED);
+                console().error(Localization.lang.t("game.fertilize.fail"));
                 return;
             }
 
@@ -1130,8 +1151,7 @@ public final class Game {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
@@ -1192,8 +1212,7 @@ public final class Game {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
@@ -1235,8 +1254,7 @@ public final class Game {
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().println(Localization.lang.t("game.coordinates.out_of_bounds"),
-                    Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
@@ -1364,8 +1382,7 @@ public final class Game {
             switch(r) {
                 case 1 -> {
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("market.funds"),
-                                Console.BRIGHT_RED);
+                        console().error(Localization.lang.t("market.funds"));
                         return;
                     }
 
@@ -1376,8 +1393,7 @@ public final class Game {
                 }
                 case 2 -> {
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("market.funds"),
-                                Console.BRIGHT_RED);
+                        console().error(Localization.lang.t("market.funds"));
                         return;
                     }
 
@@ -1391,8 +1407,7 @@ public final class Game {
                 }
                 case 3 -> {
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("market.funds"),
-                                Console.BRIGHT_RED);
+                        console().error(Localization.lang.t("market.funds"));
                         return;
                     }
 
@@ -1404,14 +1419,12 @@ public final class Game {
                 case 4 -> {
                     int increase = 2;
                     if(player.purse() < cost) {
-                        console().println(Localization.lang.t("game.plot.fail"),
-                                Console.BRIGHT_RED);
+                        console().error(Localization.lang.t("game.plot.fail"));
                         return;
                     }
 
                     if(SIZE + increase > MAX_SIZE) {
-                        console().println(Localization.lang.t("game.plot.size"),
-                                Console.BRIGHT_RED);
+                        console().error(Localization.lang.t("game.plot.size"));
                         return;
                     }
 
@@ -1516,7 +1529,7 @@ public final class Game {
      */
     private void showInventory() {
         if(inventory().isEmpty()) {
-            console().println(Localization.lang.t("game.inventory.empty"), Console.BRIGHT_RED);
+            console().error(Localization.lang.t("game.inventory.empty"));
             return;
         }
 
