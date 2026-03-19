@@ -90,7 +90,6 @@ public class GameLoop {
             env.hours(DAY_START_HOUR);
             do {
                 executor.run();
-                barn.update();
                 env.advanceTime(TIME_INCREMENT);
 
                 if(env.hours() >= HOURS_PER_DAY || executor.doSleep()) {
@@ -98,6 +97,7 @@ public class GameLoop {
                     Stats.stat.days++;
                     farm.grow();
                 }
+                barn.update();
             } while(!executor.doSleep()
                     && !Console.cli.equals(executor.getLastCommand(), "end")
                     && !Stats.stat.isGameOver);

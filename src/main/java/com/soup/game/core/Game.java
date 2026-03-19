@@ -169,7 +169,7 @@ public final class Game {
         }
         Console.cli.println();
         Console.cli.println(Localization.lang.t("game.welcome", player.title()),
-                Console.BRIGHT_GREEN);
+                Console.BRIGHT_GREEN, true);
     }
 
     /**

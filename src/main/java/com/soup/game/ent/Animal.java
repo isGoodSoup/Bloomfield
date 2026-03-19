@@ -270,12 +270,12 @@ public abstract class Animal {
         }
         if(happiness < 20) {
             console().println(Localization.lang.t("animal.unhappy", getName(),
-                            getLocalizedName()), Console.PURPLE);
+                            getLocalizedName()), Console.BLUE);
         }
 
         if(hunger > 60 || !wasFed || meals >= 2) {
             console().println(Localization.lang.t("animal.hungry", getName(),
-                            getLocalizedName(), Console.BRIGHT_RED));
+                            getLocalizedName(), Console.RED));
         }
         sleep();
     }

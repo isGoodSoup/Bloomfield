@@ -82,6 +82,17 @@ public class Console {
     }
 
     /**
+     * Prints text to standard output with newline (color).
+     * @param str text to print
+     * @param color color of text
+     * @param isTabbed short way to overload the method
+     */
+    public void println(String str, String color, boolean isTabbed) {
+        System.out.println();
+        System.out.println(color + str + RESET);
+    }
+
+    /**
      * Prints text to standard output with newline.
      * @param str text to print
      */
