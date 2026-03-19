@@ -1064,6 +1064,10 @@ public final class Game {
      * dry day counter if necessary.
      */
     private void weather() {
+        if(Gamerule.isEnabled(Gamerule.ENABLE_WEATHER_CYCLE)
+                || Gamerule.isEnabled(Gamerule.ENABLE_STOP_TIME)) {
+            return;
+        }
         weather = Weather.getRandomWeather();
         if(Objects.equals(weather, Weather.DRY)) {
             dryDay++;
@@ -1445,6 +1449,7 @@ public final class Game {
      * </ul>
      */
     private void buy() {
+        if(!Gamerule.isEnabled(Gamerule.ENABLE_MARKET)) { return; }
         market.clear();
         market.put(100, Localization.lang.t("market.water"));
         market.put(200, Localization.lang.t("market.fertilizer"));

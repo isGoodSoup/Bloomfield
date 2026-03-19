@@ -26,6 +26,7 @@ public enum GrowthStage {
      * @return the next {@link GrowthStage} in sequence, or the same stage if already at final
      */
     public GrowthStage next(int steps) {
+        if(Gamerule.isEnabled(Gamerule.ENABLE_STOP_TIME)) { return this; }
         int next = this.ordinal() + steps;
         if (next >= values().length) {
             return this;

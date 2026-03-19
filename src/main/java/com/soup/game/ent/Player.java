@@ -1,5 +1,6 @@
 package com.soup.game.ent;
 
+import com.soup.game.enums.Gamerule;
 import com.soup.game.intf.Entity;
 import com.soup.game.service.Console;
 import com.soup.game.service.Inventory;
@@ -99,7 +100,9 @@ public class Player {
      * </p>
      */
     public void levelUp() {
-        this.level += 1;
+        if(Gamerule.isEnabled(Gamerule.ENABLE_LEVEL_UP)) {
+            this.level += 1;
+        }
     }
 
     /**
@@ -115,7 +118,9 @@ public class Player {
      * @param experience the number of experience points to add
      */
     public void add(int experience) {
-        this.experience += experience;
+        if(Gamerule.isEnabled(Gamerule.ENABLE_EXPERIENCE)) {
+            this.experience += experience;
+        }
     }
 
     /**

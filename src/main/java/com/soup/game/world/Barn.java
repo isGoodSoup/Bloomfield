@@ -4,6 +4,7 @@ import com.soup.game.ent.Animal;
 import com.soup.game.ent.Player;
 import com.soup.game.ent.barn.*;
 import com.soup.game.enums.AnimalType;
+import com.soup.game.enums.Gamerule;
 import com.soup.game.intf.World;
 import com.soup.game.service.Console;
 import com.soup.game.service.Localization;
@@ -197,23 +198,25 @@ public class Barn {
      * @see Animal#breed(Animal)
      */
     private void breeding() {
-        List<Animal> newborns = new ArrayList<>();
-        for(int i = 0; i < animals.size(); i++) {
-            for(int j = i + 1; j < animals.size(); j++) {
-                Animal a = animals.get(i);
-                Animal b = animals.get(j);
-                if(!a.canBreedWith(b)) { continue; }
-                if(Math.random() > 0.95) {
-                    Animal child = a.breed(b);
-                    if(child != null) {
-                        newborns.add(child);
-                        a.getChildren().add(child);
-                        b.getChildren().add(child);
+        if(Gamerule.isEnabled(Gamerule.ENABLE_BREEDING)) {
+            List<Animal> newborns = new ArrayList<>();
+            for(int i = 0; i < animals.size(); i++) {
+                for(int j = i + 1; j < animals.size(); j++) {
+                    Animal a = animals.get(i);
+                    Animal b = animals.get(j);
+                    if(!a.canBreedWith(b)) { continue; }
+                    if(Math.random() > 0.95) {
+                        Animal child = a.breed(b);
+                        if(child != null) {
+                            newborns.add(child);
+                            a.getChildren().add(child);
+                            b.getChildren().add(child);
+                        }
                     }
                 }
             }
+            animals.addAll(newborns);
         }
-        animals.addAll(newborns);
     }
 
     /**

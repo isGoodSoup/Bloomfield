@@ -27,6 +27,7 @@ public enum Hydration {
      */
     @SuppressWarnings("DuplicateBranchesInSwitch")
     public Hydration decay() {
+        if(Gamerule.isEnabled(Gamerule.ENABLE_STOP_TIME)) { return this; }
         switch (this) {
             case MAX -> { return HIGH; }
             case HIGH -> { return MID; }
