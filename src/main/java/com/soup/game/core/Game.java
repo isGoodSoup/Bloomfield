@@ -95,7 +95,7 @@ public final class Game {
     private final Tile[][] tiles;
     private final Barn barn;
     private final Map<Integer, String> market;
-    private List<Pos> positions;
+    private final List<Gamerule> gamerules;
     private final List<Upgrades> upgrades;
     private final String day;
 
@@ -105,6 +105,7 @@ public final class Game {
     private int dryDay;
     private float hours;
 
+    private List<Pos> positions;
     private Weather weather = Weather.SUNNY;
     private Seasons season = Seasons.WINTER;
     private String[] previousArgs;
@@ -126,11 +127,13 @@ public final class Game {
         this.player = new Player();
         this.barn = new Barn(player);
         this.market = new LinkedHashMap<>();
-        this.addCommands();
+        addCommands();
 
         this.day = Localization.lang.t("game.day");
+        this.gamerules = new ArrayList<>();
         this.upgrades = new ArrayList<>();
         upgrades.add(Upgrades.NULL);
+        addGamerules();
 
         console().println("Farmlet, a terminal farm", Console.PURPLE);
         console().println(Localization.lang.t("game.welcome", player.title()),
@@ -350,6 +353,7 @@ public final class Game {
         console().cmd().put("buy", args -> buy());
         console().cmd().put("stats", args -> showStats());
         console().cmd().put("sleep", this::sleep);
+        console().cmd().put("gamerule", this::gamerule);
         console().cmd().put("end", args -> {});
     }
 
@@ -1542,6 +1546,7 @@ public final class Game {
      *             </ul>
      */
     private void give(String[] args) {
+        if(!gamerules.contains(Gamerule.ENABLE_CHEATS)) { return; }
         if(args.length < 3) {
             console().println(Localization.lang.t("game.give.usage"), Console.PURPLE);
             return;
