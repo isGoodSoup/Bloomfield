@@ -24,7 +24,7 @@ package com.soup.game.enums;
  * }</pre>
  *
  * @author isGoodSoup
- * @version 1.0
+ * @version 1.9
  */
 public enum Gamerule {
     /** Allows the use of cheats in the game. Default: false */
@@ -49,7 +49,7 @@ public enum Gamerule {
     ENABLE_STOP_TIME("doEnableStopTime", false),
 
     /** Enables the in-game tutorial system. Default: true */
-    ENABLE_TUTORIAL("doEnableTutorial", true);
+    ENABLE_TUTORIAL("doEnableTutorial", true),
 
     /** Enables punishment for using cheats. Default: true */
     ENABLE_PUNISHMENT("doEnablePunishment", true);
@@ -68,6 +68,10 @@ public enum Gamerule {
         this.value = value;
     }
 
+    public static boolean isEnabled(Gamerule gamerule) {
+        return gamerule.value;
+    }
+
     /**
      * Returns the {@code Gamerule} corresponding to a given key.
      * <p>
@@ -77,9 +81,11 @@ public enum Gamerule {
      * @param str the key string to search for
      * @return the {@code Gamerule} matching the key, or {@code null} if not found
      */
-    public Gamerule keyOf(String str) {
-        if(str.equalsIgnoreCase(key)) {
-            return this;
+    public static Gamerule fromKey(String str) {
+        for (Gamerule rule : values()) {
+            if (rule.key.equalsIgnoreCase(str)) {
+                return rule;
+            }
         }
         return null;
     }

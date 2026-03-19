@@ -84,9 +84,10 @@ import java.util.function.Consumer;
  *
  * @see #run()
  * @author isGoodSoup
- * @version 1.8
+ * @version 1.9
  * @since 1.0
  */
+@SuppressWarnings("all")
 @World
 public final class Game {
     private static final int MAX_SIZE = 512;
@@ -398,14 +399,17 @@ public final class Game {
             return;
         }
 
-        String str = args[1];
+        String key = args[1];
         boolean value = Boolean.parseBoolean(args[2]);
-        int index = gamerules.indexOf(Gamerule.rule.keyOf(str));
 
-        Gamerule gamerule = gamerules.get(index);
-        gamerule.setValue(value);
-        console().println(Localization.lang.t("game.gamerule.success"),
-                Console.BRIGHT_GREEN);
+        Gamerule rule = Gamerule.fromKey(key);
+        if(rule == null) {
+            console().error(Localization.lang.t("game.gamerule.notfound"));
+            return;
+        }
+        rule.setValue(value);
+        console().println(Localization.lang.t("game.gamerule.success",
+                        rule.key(), rule.value()), Console.BRIGHT_GREEN);
     }
 
     /**
@@ -1574,60 +1578,61 @@ public final class Game {
      *             </ul>
      */
     private void give(String[] args) {
-        if(!gamerules.contains(Gamerule.ENABLE_CHEATS)) { return; }
-        if(args.length < 3) {
-            console().println(Localization.lang.t("game.give.usage"), Console.PURPLE);
-            return;
-        }
+        if(Gamerule.isEnabled(Gamerule.ENABLE_CHEATS)) {
+            if(args.length < 3) {
+                console().println(Localization.lang.t("game.give.usage"), Console.PURPLE);
+                return;
+            }
 
-        String item = args[1];
-        int quantity = Integer.parseInt(args[2]);
+            String item = args[1];
+            int quantity = Integer.parseInt(args[2]);
 
-        for(int i = 0; i < quantity; i++) {
-            CropID itemCrop;
-            for(CropID c : CropID.values()) {
-                if(console().equals(c.getName(), item)) {
-                    itemCrop = c;
-                    inventory().add(itemCrop);
-                    break;
+            for(int i = 0; i < quantity; i++) {
+                CropID itemCrop;
+                for(CropID c : CropID.values()) {
+                    if(console().equals(c.getName(), item)) {
+                        itemCrop = c;
+                        inventory().add(itemCrop);
+                        break;
+                    }
                 }
             }
-        }
 
-        for(int i = 0; i < quantity; i++) {
-            Upgrades upgrade;
-            for(Upgrades u : Upgrades.values()) {
-                if(console().equals(u.name().toLowerCase(), item)) {
-                    upgrade = u;
-                    upgrades.add(upgrade);
-                    break;
+            for(int i = 0; i < quantity; i++) {
+                Upgrades upgrade;
+                for(Upgrades u : Upgrades.values()) {
+                    if(console().equals(u.name().toLowerCase(), item)) {
+                        upgrade = u;
+                        upgrades.add(upgrade);
+                        break;
+                    }
                 }
             }
-        }
 
-        for(int i = 0; i < quantity; i++) {
-            Fertilizer fertilizer;
-            for(Fertilizer f : Fertilizer.values()) {
-                if(console().equals("f." + f.name().toLowerCase(), item)) {
-                    fertilizer = f;
-                    inventory().add(fertilizer);
-                    item = "fertilizer." + f.name().toLowerCase();
-                    break;
+            for(int i = 0; i < quantity; i++) {
+                Fertilizer fertilizer;
+                for(Fertilizer f : Fertilizer.values()) {
+                    if(console().equals("f." + f.name().toLowerCase(), item)) {
+                        fertilizer = f;
+                        inventory().add(fertilizer);
+                        item = "fertilizer." + f.name().toLowerCase();
+                        break;
+                    }
                 }
             }
-        }
 
-        if(console().equals(item, "water")) {
-            water += quantity;
-        }
+            if(console().equals(item, "water")) {
+                water += quantity;
+            }
 
-        if(console().equals(item, "gold")) {
-            player.earn(quantity);
-        }
+            if(console().equals(item, "gold")) {
+                player.earn(quantity);
+            }
 
-        console().println(Localization.lang.t("game.give.success",
-                item, quantity), Console.BRIGHT_GREEN);
-        forceEnd();
+            console().println(Localization.lang.t("game.give.success",
+                    item, quantity), Console.BRIGHT_GREEN);
+            forceEnd();
+        }
     }
 
     /**
@@ -1771,10 +1776,12 @@ public final class Game {
      * </p>
      */
     private void forceEnd() {
-        isGameOver = true;
-        console().println(Localization.lang.t("game.end.worst",
-                player.name()),Console.BRIGHT_RED);
-        lastCommand = "end";
+        if(Gamerule.isEnabled(Gamerule.ENABLE_PUNISHMENT)) {
+            isGameOver = true;
+            console().println(Localization.lang.t("game.end.worst",
+                    player.name()),Console.BRIGHT_RED);
+            lastCommand = "end";
+        }
     }
 
     /**
