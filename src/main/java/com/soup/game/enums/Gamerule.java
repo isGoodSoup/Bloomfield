@@ -51,7 +51,9 @@ public enum Gamerule {
     /** Enables the in-game tutorial system. Default: true */
     ENABLE_TUTORIAL("doEnableTutorial", true);
 
-    public final static Gamerule rule = Gamerule.ENABLE_TUTORIAL;
+    /** Enables punishment for using cheats. Default: true */
+    ENABLE_PUNISHMENT("doEnablePunishment", true);
+
     private final String key;
     private boolean value;
 
