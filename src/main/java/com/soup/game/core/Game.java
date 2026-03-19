@@ -267,7 +267,7 @@ public final class Game {
      */
     public void addCommands() {
         registry.register("?", this::showHelp);
-        registry.register(".", this::redo);
+        registry.register(".", args -> executor.redo());
         registry.register("var", this::var);
         registry.register("harvest", this::harvest);
         registry.register("rip", this::rip);
@@ -501,7 +501,7 @@ public final class Game {
                 value = valueStr;
             }
         }
-        console().var().put(name, value);
+        registry.setVariable(name, value);
     }
 
     /**
@@ -1385,7 +1385,7 @@ public final class Game {
      */
     private void showHelp(String[] args) {
         console().println("Available commands:", Console.PURPLE);
-        for(String cmd : console().cmd().keySet()) {
+        for(String cmd : registry.getCommandNames()) {
             console().println(" - " + cmd, Console.CYAN);
         }
     }
@@ -1417,22 +1417,6 @@ public final class Game {
             }
         }
         letter();
-    }
-
-    /**
-     * Repeats the previous command entered by the player.
-     * @param args optional command arguments
-     */
-    private void redo(String[] args) {
-        if(previousArgs == null) {
-            console().error("No previous command.");
-            return;
-        }
-
-        Consumer<String[]> action = console().cmd().get(previousArgs[0]);
-        if(action != null) {
-            action.accept(previousArgs.clone());
-        }
     }
 
     /**

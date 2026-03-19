@@ -32,9 +32,7 @@ public class Console {
      * </p>
      */
     public static final Console cli = new Console();
-    private static final Map<String, Object> variables = new LinkedHashMap<>();
     private final Scanner scan = new Scanner(System.in);
-    private final Map<String, Consumer<String[]>> commands = new LinkedHashMap<>();
 
     public static final String RESET = "\u001B[0m";
     public static final String BLACK = "\u001B[30m";
@@ -48,31 +46,6 @@ public class Console {
     public static final String BRIGHT_RED = "\u001B[91m";
     public static final String BRIGHT_GREEN = "\u001B[92m";
     public static final String BRIGHT_YELLOW = "\u001B[93m";
-
-    /**
-     * Returns the map of game commands and their associated actions.
-     * <p>
-     * Each entry in the map consists of a command string (e.g., "plant", "harvest")
-     * mapped to a {@link java.util.function.Consumer} that defines the action
-     * executed when the command is invoked. The map preserves insertion order.
-     * </p>
-     * @return a {@link Map} of command names to their corresponding actions
-     */
-    public Map<String, Consumer<String[]>> cmd() {
-        return commands;
-    }
-
-    /**
-     * Returns the map of variables and their names
-     * <p>
-     * Each entry is a variable that can be used with the {@link Game}'s commands
-     * and its command is vastly more useful with the scripts than its own.
-     * </p>
-     * @return a {@link Map} of variables with their {@link String} names.
-     */
-    public Map<String, Object> var() {
-        return variables;
-    }
 
     /**
      * Prints an error message to standard error.

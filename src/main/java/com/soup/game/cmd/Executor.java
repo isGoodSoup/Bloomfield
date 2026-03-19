@@ -75,7 +75,6 @@ public class Executor implements Command {
      * {@link #totalCmd} and {@link #lastCommand} for each executed command.
      *
      * @see #doSleep()
-     * @see Console#cmd()
      */
     public void run() {
         StringBuilder script = new StringBuilder();
@@ -289,7 +288,7 @@ public class Executor implements Command {
      * @return the stored value of the variable, or the input name if not found
      */
     private Object getVar(String name) {
-        return Console.cli.var().getOrDefault(name, name);
+        return registry.getVariable(name);
     }
 
     /**
