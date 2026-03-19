@@ -1,5 +1,8 @@
 package com.soup.game.core;
 
+import com.soup.game.cmd.Executor;
+import com.soup.game.cmd.Parser;
+import com.soup.game.cmd.Registry;
 import com.soup.game.ent.Player;
 import com.soup.game.enums.*;
 import com.soup.game.intf.Item;
@@ -82,7 +85,6 @@ import java.util.function.Consumer;
  *     <li>Nested structures are executed recursively</li>
  * </ul>
  *
- * @see #run()
  * @author isGoodSoup
  * @version 1.9
  * @since 1.0
@@ -98,6 +100,10 @@ public final class Game {
     private final Map<Integer, String> market;
     private final List<Upgrades> upgrades;
     private final String day;
+
+    private final Parser parser;
+    private final Registry registry;
+    private final Executor executor;
 
     private int SIZE = 4;
     private float water = 100f;
@@ -127,6 +133,10 @@ public final class Game {
         this.player = new Player();
         this.barn = new Barn(player);
         this.market = new LinkedHashMap<>();
+
+        this.parser = new Parser();
+        this.registry = new Registry();
+        this.executor = new Executor(parser, registry);
         addCommands();
 
         this.day = Localization.lang.t("game.day");
@@ -236,15 +246,15 @@ public final class Game {
             update();
             hours = 6f;
             do {
-                run();
+                executor.run();
                 barn.update();
                 hours += 0.2f;
-                if(hours >= HOURS || doSleep(lastCommand)) {
+                if(hours >= HOURS || executor.doSleep()) {
                     hours = 0f;
                     days++;
                     grow();
                 }
-            } while(!doSleep(lastCommand)
+            } while(!executor.doSleep()
                     && !console().equals(lastCommand, "end")
                     && !isGameOver);
             resetHarvest();
@@ -252,107 +262,32 @@ public final class Game {
     }
 
     /**
-     * Reads user input from the console, parses and executes commands until a
-     * terminating semicolon (";") is entered or a command triggers a sleep condition.
-     * Commands can be chained using "&&"; each command is looked up in the console's
-     * command map and executed if found. Unknown commands are reported in red. Updates
-     * {@link #totalCmd} and {@link #lastCommand} for each executed command.
-     *
-     * @see #doSleep(String)
-     * @see Console#cmd()
-     */
-    private void run() {
-        StringBuilder script = new StringBuilder();
-        String line;
-        do {
-            line = console().reply("").trim();
-            if(!console().equals(line, ";")) {
-                script.append(line).append("\n");
-            }
-        } while(!console().equals(line, ";"));
-
-        String[] lines = script.toString().split("\\R");
-        for(String l : lines) {
-            String[] chain = l.split("\\s*&&\\s*");
-            for(String cmd : chain) {
-                cmd = cmd.trim();
-                if(cmd.isEmpty()) { continue; }
-                String[] tokens = tokenize(cmd);
-                totalCmd++;
-                execute(tokens, 0, new LinkedHashMap<>(), 0);
-            }
-        }
-    }
-
-    /**
-     * Tokenizes a command line string into arguments, preserving quoted segments.
-     * <p>
-     * Splits the input on whitespace, except when inside double quotes. Quoted
-     * substrings are treated as a single token and returned without the quote characters.
-     * </p>
-     *
-     * <p>
-     * Example:
-     * </p>
-     * <pre>
-     * input:  plant 1 "hello world"
-     * output: ["plant", "1", "hello world"]
-     * </pre>
-     *
-     * @param commandLine the raw command line input
-     * @return an array of tokens representing the parsed arguments
-     */
-    private String[] tokenize(String commandLine) {
-        List<String> tokens = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        boolean inQuote = false;
-
-        for(int i = 0; i < commandLine.length(); i++) {
-            char c = commandLine.charAt(i);
-            if(c == '"') {
-                inQuote = !inQuote;
-                continue;
-            }
-            if(Character.isWhitespace(c) && !inQuote) {
-                if(!current.isEmpty()) {
-                    tokens.add(current.toString());
-                    current.setLength(0);
-                }
-            } else {
-                current.append(c);
-            }
-        }
-        if(!current.isEmpty()) tokens.add(current.toString());
-        return tokens.toArray(new String[0]);
-    }
-
-    /**
      * Registers all available commands
      * and their corresponding actions.
      */
-    private void addCommands() {
-        console().cmd().put("?", this::showHelp);
-        console().cmd().put(".", this::redo);
-        console().cmd().put("var", this::var);
-        console().cmd().put("harvest", this::harvest);
-        console().cmd().put("rip", this::rip);
-        console().cmd().put("water", this::irrigate);
-        console().cmd().put("plant", this::plant);
-        console().cmd().put("fertilize", this::fertilize);
-        console().cmd().put("feed", args -> barn.feedAll());
-        console().cmd().put("pet", args -> barn.pet());
-        console().cmd().put("get", this::get);
-        console().cmd().put("view", this::update);
-        console().cmd().put("show", args -> update());
-        console().cmd().put("inv", args -> showInventory());
-        console().cmd().put("time", args -> showTime());
-        console().cmd().put("sell", args -> sellCrops());
-        console().cmd().put("give", this::give);
-        console().cmd().put("buy", args -> buy());
-        console().cmd().put("stats", args -> showStats());
-        console().cmd().put("sleep", this::sleep);
-        console().cmd().put("gamerule", this::gamerule);
-        console().cmd().put("end", args -> {});
+    public void addCommands() {
+        registry.register("?", this::showHelp);
+        registry.register(".", this::redo);
+        registry.register("var", this::var);
+        registry.register("harvest", this::harvest);
+        registry.register("rip", this::rip);
+        registry.register("water", this::irrigate);
+        registry.register("plant", this::plant);
+        registry.register("fertilize", this::fertilize);
+        registry.register("feed", args -> barn.feedAll());
+        registry.register("pet", args -> barn.pet());
+        registry.register("get", this::get);
+        registry.register("view", this::update);
+        registry.register("show", args -> update());
+        registry.register("inv", args -> showInventory());
+        registry.register("time", args -> showTime());
+        registry.register("sell", args -> sellCrops());
+        registry.register("give", this::give);
+        registry.register("buy", args -> buy());
+        registry.register("stats", args -> showStats());
+        registry.register("sleep", this::sleep);
+        registry.register("gamerule", this::gamerule);
+        registry.register("end", args -> {});
     }
 
     /**
@@ -522,239 +457,6 @@ public final class Game {
     }
 
     /**
-     * Executes a loop a fixed number of times over a tokenized command stream.
-     * <p>
-     * This method is the core driver for the custom {@code for} construct. It binds
-     * a loop index (e.g. {@code +i}, {@code +j}, ...) based on the current recursion
-     * depth, then repeatedly invokes {@link #execute(String[], int, Map, int)} on the
-     * provided token sequence.
-     * </p>
-     *
-     * <p>
-     * Loop indices are stored in the {@code indices} map and are scoped per iteration.
-     * Each iteration assigns the current index value, executes the nested command,
-     * and then removes the index binding.
-     * </p>
-     *
-     * @param times   the number of iterations to execute; must be {@code > 0}
-     * @param indices a map of active loop indices (e.g. {@code i -> 0, j -> 2})
-     * @param depth   the current nesting depth, used to determine index variable names
-     *
-     * @see #execute(String[], int, Map, int)
-     * @see #letter(int)
-     */
-    private void runFor(int times, String[] bodyTokens, Map<String, Integer> indices, int depth) {
-        for (int i = 0; i < times; i++) {
-            indices.put(letter(depth), i);
-            execute(bodyTokens, 0, indices, depth + 1);
-            indices.remove(letter(depth));
-        }
-    }
-
-    /**
-     * Executes a command from a token stream starting at a given position.
-     * <p>
-     * This method performs a recursive descent over the token array. It supports:
-     * </p>
-     * <ul>
-     *     <li>Nested {@code for} loops (e.g. {@code for 4 for 4 plant +i +j})</li>
-     *     <li>{@code while} loops (e.g. {@code while true water 0 0}</li>
-     *     <li>Standard command execution via the console command registry</li>
-     * </ul>
-     *
-     * <p>
-     * If the current token is {@code "for"}, the method parses the iteration count
-     * from the next token and delegates execution to {@link #runFor(int, String[], Map, int)}.
-     * Otherwise, the token is treated as a command name and executed with all remaining
-     * tokens as arguments.
-     * </p>
-     *
-     * <p>
-     * Before execution, all arguments are processed through
-     * {@link #replace(String[], Map)} to resolve loop indices (e.g. {@code +i})
-     * and variable references.
-     * </p>
-     *
-     * @param tokens  the full tokenized command sequence
-     * @param pos     the current position in the token array
-     * @param indices a map of active loop indices
-     * @param depth   the current nesting depth for loop index resolution
-     *
-     * @see #runFor(int, String[], Map, int)
-     * @see #replace(String[], Map)
-     */
-    private void execute(String[] tokens, int pos,
-                         Map<String, Integer> indices, int depth) {
-        if(pos >= tokens.length) { return; }
-        String token = tokens[pos];
-        if(token != null && token.equals("for")) {
-            if(!upgrades.contains(Upgrades.FOR_LOOP)) {
-                console().error(Localization.lang.t("game.upgrade.locked"));
-                return;
-            }
-
-            if(pos + 1 >= tokens.length) {
-                console().println(Localization.lang.t("game.for.usage"), Console.PURPLE);
-                return;
-            }
-
-            Object rawTimes = getVar(tokens[pos + 1]);
-            int nestedTimes;
-
-            if(rawTimes instanceof Number) {
-                nestedTimes = ((Number) rawTimes).intValue();
-            } else {
-                try {
-                    nestedTimes = Integer.parseInt(rawTimes.toString());
-                } catch(Exception e) {
-                    console().error("Invalid number of times: " + tokens[pos + 1]);
-                    return;
-                }
-            }
-
-            int bodyEnd = tokens.length;
-            String[] subTokens = Arrays.copyOfRange(tokens, pos + 2, bodyEnd);
-            runFor(nestedTimes, subTokens, indices, depth);
-            execute(tokens, bodyEnd + 1, indices, depth);
-            return;
-        }
-
-        if(token != null && token.equals("if")) {
-            if(pos + 4 >= tokens.length) {
-                console().println(Localization.lang.t("game.if.usage"), Console.PURPLE);
-                return;
-            }
-
-            String left = tokens[pos + 1];
-            String op = tokens[pos + 2];
-            String right = tokens[pos + 3];
-
-            Object result = evaluate(left, op, right);
-            if(!(result instanceof Boolean)) {
-                console().error(Localization.lang.t("game.error.condition"));
-                return;
-            }
-
-            if(!tokens[pos + 4].equalsIgnoreCase("then")) {
-                console().println(Localization.lang.t("game.if.usage"), Console.PURPLE);
-                return;
-            }
-
-            String[] body = Arrays.copyOfRange(tokens, pos + 5, tokens.length);
-            if((Boolean) result) {
-                execute(body, 0, indices, depth);
-            }
-            return;
-        }
-
-        Consumer<String[]> action = console().cmd().get(token);
-        if(action == null) {
-            return;
-        }
-
-        String[] rawArgs = Arrays.copyOfRange(tokens, pos + 1, tokens.length);
-        String[] finalArgs = replace(rawArgs, indices);
-        String[] awc = new String[finalArgs.length + 1];
-        awc[0] = token;
-        System.arraycopy(finalArgs, 0, awc, 1, finalArgs.length);
-        action.accept(awc);
-    }
-
-    /**
-     * Evaluates an expression between two values and returns the result
-     * <p>
-     * That result may either be numeric or boolean depending on the operation.
-     * Used in both if and while since they require a condition.
-     * </p>
-     * @param leftVar value A
-     * @param op binary operator
-     * @param rightVar value B
-     * @return the boolean/numeric type {@link Object}
-     *
-     * @see #execute(String[], int, Map, int)
-     */
-    private Object evaluate(String leftVar, String op, String rightVar) {
-        Object leftValue = getVar(leftVar);
-        Object rightValue = getVar(rightVar);
-        if(leftValue == null) { leftValue = leftVar; }
-        if(rightValue == null) { rightValue = rightVar; }
-
-        double a, b;
-        try {
-            a = Double.parseDouble(leftValue.toString());
-            b = Double.parseDouble(rightValue.toString());
-        } catch(NumberFormatException e) {
-            console().error(Localization.lang.t("game.error.number"));
-            return 0;
-        }
-
-        return switch(op) {
-            case "+" -> a + b;
-            case "-" -> a - b;
-            case "*" -> a * b;
-            case "/" -> a / b;
-            case "<" -> a < b;
-            case ">" -> a > b;
-            case "==" -> a == b;
-            default -> 0;
-        };
-    }
-
-    /**
-     * Returns the loop index variable name for a given nesting depth.
-     * <p>
-     * Index variables start at {@code 'i'} for depth {@code 0}, then increment
-     * alphabetically ({@code j}, {@code k}, ...). This allows nested loops to use
-     * distinct placeholders such as {@code +i}, {@code +j}, etc.
-     * </p>
-     *
-     * @param depth the current nesting depth (0-based)
-     * @return the corresponding index variable name as a string
-     * @throws IllegalStateException if the nesting depth exceeds supported range
-     */
-    private String letter(int depth) {
-        char c = (char) ('i' + depth);
-        if(c > 'z') throw new IllegalStateException("Too many nested loops (>18)");
-        return String.valueOf(c);
-    }
-
-    /**
-     * Replaces loop index placeholders and variable references in command arguments.
-     * <p>
-     * This method processes each argument by:
-     * </p>
-     * <ol>
-     *     <li>Replacing loop index placeholders (e.g. {@code +i}, {@code +j}) with
-     *     their corresponding values from {@code indices}</li>
-     *     <li>Resolving variables via {@link #getVar(String)} if applicable</li>
-     * </ol>
-     *
-     * <p>
-     * The replacement is performed sequentially for each active index, allowing
-     * nested loops to correctly substitute multiple placeholders.
-     * </p>
-     *
-     * @param args    the raw argument array
-     * @param indices the active loop index bindings
-     * @return a new array with all placeholders and variables resolved
-     *
-     * @see #getVar(String)
-     */
-    private String[] replace(String[] args, Map<String, Integer> indices) {
-        String[] result = args.clone();
-        for(int k = 0; k < result.length; k++) {
-            String arg = result[k];
-            for(Map.Entry<String, Integer> entry : indices.entrySet()) {
-                arg = arg.replace("+" + entry.getKey(), entry.getValue().toString());
-            }
-            Object varValue = getVar(arg);
-            if(varValue != null) arg = varValue.toString();
-            result[k] = arg;
-        }
-        return result;
-    }
-
-    /**
      * Assigns a value to a named variable in the console's variable store.
      * <p>
      * The expected command format is: <code>var &lt;name&gt; = &lt;value&gt;</code>.
@@ -786,7 +488,7 @@ public final class Game {
         Object value;
 
         if(args.length == 6 && args[4].matches("[+\\-*/]")) {
-            value = evaluate(args[3], args[4], args[5]
+            value = executor.evaluate(args[3], args[4], args[5]
             );
         } else {
             try {
@@ -800,22 +502,6 @@ public final class Game {
             }
         }
         console().var().put(name, value);
-    }
-
-    /**
-     * Retrieves the value of a named variable from the console's variable store.
-     * <p>
-     * If the variable exists, returns its stored value. If the variable does not
-     * exist, returns the input name itself as a fallback.
-     * <p>
-     * This method is used to dynamically resolve variables in commands such as loops
-     * or conditional operations.
-     *
-     * @param name the name of the variable to retrieve
-     * @return the stored value of the variable, or the input name if not found
-     */
-    private Object getVar(String name) {
-        return console().var().getOrDefault(name, name);
     }
 
     /**
@@ -1374,16 +1060,6 @@ public final class Game {
         console().println(Localization.lang.t("game.coin", player.purse()),
                 Console.YELLOW);
         updateHydration();
-    }
-
-    /**
-     * With the parsed last command it returns a boolean check of
-     * if the last command is sleep
-     * @param lastCommand the latest command from the map
-     * @return boolean if true command was sleep, false otherwise
-     */
-    private boolean doSleep(String lastCommand) {
-        return console().equals(lastCommand, "sleep");
     }
 
     /**
