@@ -8,7 +8,6 @@ import com.soup.game.enums.*;
 import com.soup.game.intf.Item;
 import com.soup.game.intf.World;
 import com.soup.game.service.Console;
-import com.soup.game.service.Inventory;
 import com.soup.game.service.Localization;
 import com.soup.game.service.Pos;
 import com.soup.game.world.Barn;
@@ -16,7 +15,6 @@ import com.soup.game.world.Crop;
 import com.soup.game.world.Tile;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * <h1>farmlet</h1>
@@ -143,8 +141,8 @@ public final class Game {
         this.upgrades = new ArrayList<>();
         upgrades.add(Upgrades.NULL);
 
-        console().println("Farmlet, a terminal farm", Console.PURPLE);
-        console().println(Localization.lang.t("game.welcome", player.title()),
+        Console.cli.println("Farmlet, a terminal farm", Console.PURPLE);
+        Console.cli.println(Localization.lang.t("game.welcome", player.title()),
                 Console.BRIGHT_GREEN);
         start();
     }
@@ -183,13 +181,13 @@ public final class Game {
      */
     private void showEnding() {
         if(days > 60) {
-            console().println(Localization.lang.t("game.end.best", days),
+            Console.cli.println(Localization.lang.t("game.end.best", days),
                     Console.BRIGHT_GREEN);
         } else if(days >= 15 && days < 60) {
-            console().println(Localization.lang.t("game.end.good", days),
+            Console.cli.println(Localization.lang.t("game.end.good", days),
                     Console.BRIGHT_YELLOW);
         } else if(days < 15) {
-            console().println(Localization.lang.t("game.end.bad", days),
+            Console.cli.println(Localization.lang.t("game.end.bad", days),
                     Console.PURPLE);
         }
     }
@@ -236,11 +234,11 @@ public final class Game {
      * @see #update()
      * @see #grow()
      * @see #resetHarvest()
-     * @see #console()
+     * @see #Console.cli
      */
     private void loop() {
-        while(!console().equals(lastCommand, "end") && !isGameOver) {
-            console().println(day + " " + days, Console.GREEN);
+        while(!Console.cli.equals(lastCommand, "end") && !isGameOver) {
+            Console.cli.println(day + " " + days, Console.GREEN);
             season();
             weather();
             update();
@@ -255,7 +253,7 @@ public final class Game {
                     grow();
                 }
             } while(!executor.doSleep()
-                    && !console().equals(lastCommand, "end")
+                    && !Console.cli.equals(lastCommand, "end")
                     && !isGameOver);
             resetHarvest();
         }
@@ -320,7 +318,7 @@ public final class Game {
      */
     private void gamerule(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.gamerule.usage"), Console.PURPLE);
+            Console.cli.println(Localization.lang.t("game.gamerule.usage"), Console.PURPLE);
             return;
         }
 
@@ -329,11 +327,11 @@ public final class Game {
 
         Gamerule rule = Gamerule.fromKey(key);
         if(rule == null) {
-            console().error(Localization.lang.t("game.gamerule.notfound"));
+            Console.cli.error(Localization.lang.t("game.gamerule.notfound"));
             return;
         }
         rule.setValue(value);
-        console().println(Localization.lang.t("game.gamerule.success",
+        Console.cli.println(Localization.lang.t("game.gamerule.success",
                         rule.key(), rule.value()), Console.BRIGHT_GREEN);
     }
 
@@ -401,7 +399,7 @@ public final class Game {
      */
     private void update(String[] args) {
         if(args.length < 5) {
-            console().println(Localization.lang.t("game.view.usage"),
+            Console.cli.println(Localization.lang.t("game.view.usage"),
                     Console.PURPLE);
             return;
         }
@@ -414,12 +412,12 @@ public final class Game {
             endRow = Integer.parseInt(args[3]);
             endCol = Integer.parseInt(args[4]);
         } catch(NumberFormatException e) {
-            console().error(Localization.lang.t("game.coordinates.invalid"));
+            Console.cli.error(Localization.lang.t("game.coordinates.invalid"));
             return;
         }
 
         if(startRow < 0 || startRow >= SIZE || startCol < 0 || startCol >= SIZE) {
-            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
+            Console.cli.error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
@@ -453,7 +451,7 @@ public final class Game {
             }
             sb.append("\n");
         }
-        console().print(sb.toString());
+        Console.cli.print(sb.toString());
     }
 
     /**
@@ -475,11 +473,11 @@ public final class Game {
      *                 <li>args[2] must be "="</li>
      *                 <li>args[3] is the value to assign</li>
      *             </ul>
-     * @see #console()
+     * @see #Console.cli
      */
     private void var(String[] args) {
         if(args.length < 4 || !args[2].equalsIgnoreCase("=")) {
-            console().println(Localization.lang.t("game.var.usage"), Console.PURPLE);
+            Console.cli.println(Localization.lang.t("game.var.usage"), Console.PURPLE);
             return;
         }
 
@@ -563,7 +561,7 @@ public final class Game {
      */
     private void harvest(String[] args) {
         if(args.length < 3 && upgrades.contains(Upgrades.HARVEST_UPGRADE)
-                && console().equals(args[1], "all")) {
+                && Console.cli.equals(args[1], "all")) {
             for(Pos pos : letter()) {
                 int row = pos.row();
                 int col = pos.col();
@@ -572,7 +570,7 @@ public final class Game {
                         (tile.soil().getYieldModifier() +
                                 tile.crop().getYieldBonus()));
                 for(int i = 0; i < totalYield; i++) {
-                    inventory().add(tile.crop().getId());
+                    player.inventory().add(tile.crop().getId());
                 }
                 tile.crop().harvested();
                 if(tile.crop().getId().regrows()) {
@@ -580,18 +578,18 @@ public final class Game {
                 } else {
                     tiles[row][col] = null;
                 }
-                console().println(Localization.lang.t("game.yields",
-                        inventory().getQuantity(tile.crop().getId())), Console.PURPLE);
+                Console.cli.println(Localization.lang.t("game.yields",
+                        player.inventory().getQuantity(tile.crop().getId())), Console.PURPLE);
                 player.update(tile.crop().getId().getXp());
                 tile.crop().resetYieldBonus();
             }
-            console().println(Localization.lang.t("game.harvest.success.all"),
+            Console.cli.println(Localization.lang.t("game.harvest.success.all"),
                     Console.BRIGHT_GREEN);
             return;
         }
 
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.harvest.usage"), Console.PURPLE);
+            Console.cli.println(Localization.lang.t("game.harvest.usage"), Console.PURPLE);
             return;
         }
 
@@ -600,23 +598,23 @@ public final class Game {
             row = Integer.parseInt(args[1]);
             col = Integer.parseInt(args[2]);
         } catch(NumberFormatException e) {
-            console().error(Localization.lang.t("game.coordinates.invalid"));
+            Console.cli.error(Localization.lang.t("game.coordinates.invalid"));
             return;
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
+            Console.cli.error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
         Tile tile = tiles[row][col];
         if(tile.crop() == null) {
-            console().error(Localization.lang.t("game.harvest.nothing"));
+            Console.cli.error(Localization.lang.t("game.harvest.nothing"));
             return;
         }
 
         if(!tile.crop().canHarvest()) {
-            console().error(Localization.lang.t("game.harvest.not_ready"));
+            Console.cli.error(Localization.lang.t("game.harvest.not_ready"));
             return;
         }
 
@@ -624,7 +622,7 @@ public final class Game {
                 (tile.soil().getYieldModifier() +
                         tile.crop().getYieldBonus()));
         for(int i = 0; i < totalYield; i++) {
-            inventory().add(tile.crop().getId());
+            player.inventory().add(tile.crop().getId());
         }
 
         tile.crop().harvested();
@@ -635,7 +633,7 @@ public final class Game {
         }
 
         tile.crop().resetYieldBonus();
-        console().println(Localization.lang.t("game.harvest.success",
+        Console.cli.println(Localization.lang.t("game.harvest.success",
                 tile.crop().getId().getName(), row, col), Console.BRIGHT_GREEN);
         player.update(tile.crop().getId().getXp());
     }
@@ -671,7 +669,7 @@ public final class Game {
         }
 
         float average = cropCount > 0 ? (float) totalHydration/cropCount : 0f;
-        console().println(Localization.lang.t("game.irrigate_crops", average),
+        Console.cli.println(Localization.lang.t("game.irrigate_crops", average),
                 Console.CYAN);
     }
 
@@ -714,7 +712,7 @@ public final class Game {
      */
     private void irrigate(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.irrigate.usage"), Console.PURPLE);
+            Console.cli.println(Localization.lang.t("game.irrigate.usage"), Console.PURPLE);
             return;
         }
 
@@ -725,10 +723,10 @@ public final class Game {
             }
             water -= 0.1f;
             waterUsed += 0.1f;
-            console().println(Localization.lang.t("game.irrigate.success", water),
+            Console.cli.println(Localization.lang.t("game.irrigate.success", water),
                     Console.BRIGHT_GREEN);
         } else {
-            console().error(Localization.lang.t("game.irrigate.fail"));
+            Console.cli.error(Localization.lang.t("game.irrigate.fail"));
         }
     }
 
@@ -739,7 +737,7 @@ public final class Game {
     private void season() {
         if(days % 30 == 0) {
             season = season.next();
-            console().println(Localization.lang.t("game.season.new",
+            Console.cli.println(Localization.lang.t("game.season.new",
                     season.getKey()), Console.PURPLE);
         }
     }
@@ -759,7 +757,7 @@ public final class Game {
         } else {
             dryDay = 0;
         }
-        console().println(weather.message(), Console.CYAN);
+        Console.cli.println(weather.message(), Console.CYAN);
     }
 
     /**
@@ -801,7 +799,7 @@ public final class Game {
      */
     private void plant(String[] args) {
         if(args.length >= 2 && upgrades.contains(Upgrades.PLANT_UPGRADE)
-                && console().equals(args[1], "all")) {
+                && Console.cli.equals(args[1], "all")) {
             for(Pos pos : letter()) {
                 int row = pos.row();
                 int col = pos.col();
@@ -810,13 +808,13 @@ public final class Game {
                             Soil.SILT, Fertilizer.NONE);
                 }
             }
-            console().println(Localization.lang.t("game.plant.success.all"),
+            Console.cli.println(Localization.lang.t("game.plant.success.all"),
                     Console.BRIGHT_GREEN);
             return;
         }
 
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.plant.usage"), Console.PURPLE);
+            Console.cli.println(Localization.lang.t("game.plant.usage"), Console.PURPLE);
             return;
         }
 
@@ -825,23 +823,23 @@ public final class Game {
             row = Integer.parseInt(args[1]);
             col = Integer.parseInt(args[2]);
         } catch(NumberFormatException e) {
-            console().error(Localization.lang.t("game.coordinates.invalid"));
+            Console.cli.error(Localization.lang.t("game.coordinates.invalid"));
             return;
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
+            Console.cli.error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
         if(tiles[row][col] != null) {
-            console().error(Localization.lang.t("game.plant.occupied"));
+            Console.cli.error(Localization.lang.t("game.plant.occupied"));
             return;
         }
 
         tiles[row][col] = new Tile(new Crop(CropID.id.random(season)),
                 Soil.SILT, Fertilizer.NONE);
-        console().println(Localization.lang.t("game.plant.success", row, col),
+        Console.cli.println(Localization.lang.t("game.plant.success", row, col),
                 Console.BRIGHT_GREEN);
     }
 
@@ -902,11 +900,11 @@ public final class Game {
             row = Integer.parseInt(args[2]);
             col = Integer.parseInt(args[3]);
         } catch(NumberFormatException e) {
-            console().error(Localization.lang.t("game.coordinates.invalid"));
+            Console.cli.error(Localization.lang.t("game.coordinates.invalid"));
             return;
         }
 
-        if(args.length >= 3 && console().equals(args[2], "all")
+        if(args.length >= 3 && Console.cli.equals(args[2], "all")
                 && upgrades.contains(Upgrades.FERTILIZER_UPGRADE)) {
 
             Fertilizer fertilizer = Arrays.stream(Fertilizer.values())
@@ -914,31 +912,31 @@ public final class Game {
                     .findFirst()
                     .orElse(null);
 
-            if(inventory().getQuantity(fertilizer) < SIZE) {
-                console().error(Localization.lang.t("game.fertilize.fail"));
+            if(player.inventory().getQuantity(fertilizer) < SIZE) {
+                Console.cli.error(Localization.lang.t("game.fertilize.fail"));
                 return;
             }
 
-            while(inventory().getQuantity(fertilizer) > SIZE) {
+            while(player.inventory().getQuantity(fertilizer) > SIZE) {
                 for(int r = 0; r < SIZE; r++) {
                     for(int c = 0; c < SIZE; c++) {
                         tiles[r][c] = tiles[r][c].withFertilizer(fertilizer);
-                        inventory().remove(fertilizer);
+                        player.inventory().remove(fertilizer);
                     }
                 }
             }
 
-            console().println(Localization.lang.t("game.fertilize.success.all"));
+            Console.cli.println(Localization.lang.t("game.fertilize.success.all"));
             return;
         }
 
         if(args.length < 4) {
-            console().println(Localization.lang.t("game.fertilize.usage"), Console.PURPLE);
+            Console.cli.println(Localization.lang.t("game.fertilize.usage"), Console.PURPLE);
             return;
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
+            Console.cli.error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
@@ -950,21 +948,21 @@ public final class Game {
         }
 
         if(fertilizer == null) {
-            console().println(Localization.lang.t("game.fertilize.invalid"),
+            Console.cli.println(Localization.lang.t("game.fertilize.invalid"),
                     Console.RED);
             return;
         }
 
         if(tiles[row][col].fertilizer() != Fertilizer.NONE) {
-            console().println(Localization.lang.t("game.fertilize.done"),
+            Console.cli.println(Localization.lang.t("game.fertilize.done"),
                     Console.RED);
             return;
         }
 
         Tile tile = tiles[row][col].withFertilizer(fertilizer);
         tiles[row][col] = tile;
-        inventory().remove(fertilizer);
-        console().println(Localization.lang.t("game.fertilize.success", row, col),
+        player.inventory().remove(fertilizer);
+        Console.cli.println(Localization.lang.t("game.fertilize.success", row, col),
                 Console.BRIGHT_GREEN);
     }
 
@@ -984,7 +982,7 @@ public final class Game {
      */
     private void get(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.get_crop.usage"),
+            Console.cli.println(Localization.lang.t("game.get_crop.usage"),
                     Console.PURPLE);
             return;
         }
@@ -994,19 +992,19 @@ public final class Game {
             row = Integer.parseInt(args[1]);
             col = Integer.parseInt(args[2]);
         } catch(NumberFormatException e) {
-            console().error(Localization.lang.t("game.coordinates.invalid"));
+            Console.cli.error(Localization.lang.t("game.coordinates.invalid"));
             return;
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
+            Console.cli.error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
         Tile tile = tiles[row][col];
         if(tile != null && tile.crop() != null) {
             String id = tile.crop().getId().getName();
-            console().println(Localization.lang.t("game.get_crop", id, row, col),
+            Console.cli.println(Localization.lang.t("game.get_crop", id, row, col),
                     Console.PURPLE);
         }
     }
@@ -1027,7 +1025,7 @@ public final class Game {
      */
     private void rip(String[] args) {
         if(args.length < 3) {
-            console().println(Localization.lang.t("game.rip.usage"), Console.PURPLE);
+            Console.cli.println(Localization.lang.t("game.rip.usage"), Console.PURPLE);
             return;
         }
 
@@ -1036,17 +1034,17 @@ public final class Game {
             row = Integer.parseInt(args[1]);
             col = Integer.parseInt(args[2]);
         } catch(NumberFormatException e) {
-            console().error(Localization.lang.t("game.coordinates.invalid"));
+            Console.cli.error(Localization.lang.t("game.coordinates.invalid"));
             return;
         }
 
         if(row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            console().error(Localization.lang.t("game.coordinates.out_of_bounds"));
+            Console.cli.error(Localization.lang.t("game.coordinates.out_of_bounds"));
             return;
         }
 
         tiles[row][col] = null;
-        console().println(Localization.lang.t("game.rip.success", row, col),
+        Console.cli.println(Localization.lang.t("game.rip.success", row, col),
                 Console.BRIGHT_GREEN);
     }
 
@@ -1056,8 +1054,8 @@ public final class Game {
      */
     private void sleep(String[] args) {
         hours = HOURS;
-        console().println(Localization.lang.t("game.sleep"), Console.CYAN);
-        console().println(Localization.lang.t("game.coin", player.purse()),
+        Console.cli.println(Localization.lang.t("game.sleep"), Console.CYAN);
+        Console.cli.println(Localization.lang.t("game.coin", player.purse()),
                 Console.YELLOW);
         updateHydration();
     }
@@ -1068,19 +1066,19 @@ public final class Game {
     private void sellCrops() {
         int totalCoin = 0;
 
-        for(Map.Entry<Item, Integer> entry : new LinkedHashMap<>(inventory()
+        for(Map.Entry<Item, Integer> entry : new LinkedHashMap<>(player.inventory()
                 .getAll()).entrySet()) {
             Item item = entry.getKey();
             if(item instanceof CropID c) {
                 int quantity = entry.getValue();
                 totalCoin += c.value() * quantity;
                 for(int i = 0; i < quantity; i++) {
-                    inventory().remove(c);
+                    player.inventory().remove(c);
                 }
             }
         }
         player.earn(totalCoin);
-        console().println(Localization.lang.t("game.sold", totalCoin), Console.YELLOW);
+        Console.cli.println(Localization.lang.t("game.sold", totalCoin), Console.YELLOW);
     }
 
     /**
@@ -1144,11 +1142,11 @@ public final class Game {
                 String price = entry.getKey().toString();
                 String name = entry.getValue();
                 String spaces = " ".repeat(maxPriceWidth - price.length() + 2);
-                console().println(price + " gold" + spaces + name, Console.PURPLE);
+                Console.cli.println(price + " gold" + spaces + name, Console.PURPLE);
             }
 
             while(r > market.size()) {
-                r = console().replyNum(Localization.lang.t("market.query") + " ");
+                r = Console.cli.replyNum(Localization.lang.t("market.query") + " ");
             }
 
             List<Map.Entry<Integer, String>> items = new ArrayList<>(market.entrySet());
@@ -1160,49 +1158,49 @@ public final class Game {
             switch(r) {
                 case 1 -> {
                     if(player.purse() < cost) {
-                        console().error(Localization.lang.t("market.funds"));
+                        Console.cli.error(Localization.lang.t("market.funds"));
                         return;
                     }
 
                     player.take(cost);
                     water += 1f;
-                    console().println(Localization.lang.t("market.bought",
+                    Console.cli.println(Localization.lang.t("market.bought",
                             "market.water", player.purse()), Console.BRIGHT_GREEN);
                 }
                 case 2 -> {
                     if(player.purse() < cost) {
-                        console().error(Localization.lang.t("market.funds"));
+                        Console.cli.error(Localization.lang.t("market.funds"));
                         return;
                     }
 
                     player.take(cost);
                     for(int i = 0; i < 16; i++) {
-                        inventory().add(Fertilizer.SPEED);
-                        inventory().add(Fertilizer.YIELD);
+                        player.inventory().add(Fertilizer.SPEED);
+                        player.inventory().add(Fertilizer.YIELD);
                     }
-                    console().println(Localization.lang.t("market.bought",
+                    Console.cli.println(Localization.lang.t("market.bought",
                             "market.fertilizer", player.purse()), Console.BRIGHT_GREEN);
                 }
                 case 3 -> {
                     if(player.purse() < cost) {
-                        console().error(Localization.lang.t("market.funds"));
+                        Console.cli.error(Localization.lang.t("market.funds"));
                         return;
                     }
 
                     player.take(cost);
                     upgrades.add(Upgrades.FOR_LOOP);
-                    console().println(Localization.lang.t("market.bought",
+                    Console.cli.println(Localization.lang.t("market.bought",
                             "market.for", player.purse()), Console.BRIGHT_GREEN);
                 }
                 case 4 -> {
                     int increase = 2;
                     if(player.purse() < cost) {
-                        console().error(Localization.lang.t("game.plot.fail"));
+                        Console.cli.error(Localization.lang.t("game.plot.fail"));
                         return;
                     }
 
                     if(SIZE + increase > MAX_SIZE) {
-                        console().error(Localization.lang.t("game.plot.size"));
+                        Console.cli.error(Localization.lang.t("game.plot.size"));
                         return;
                     }
 
@@ -1211,7 +1209,7 @@ public final class Game {
                     SIZE += increase;
                     int newPlots = SIZE * SIZE - oldSize * oldSize;
                     resize();
-                    console().println(Localization.lang.t("market.bought.plot",
+                    Console.cli.println(Localization.lang.t("market.bought.plot",
                             newPlots, player.purse()), Console.BRIGHT_GREEN);
                 }
                 case 5 -> {
@@ -1249,7 +1247,7 @@ public final class Game {
     private void give(String[] args) {
         if(Gamerule.isEnabled(Gamerule.ENABLE_CHEATS)) {
             if(args.length < 3) {
-                console().println(Localization.lang.t("game.give.usage"), Console.PURPLE);
+                Console.cli.println(Localization.lang.t("game.give.usage"), Console.PURPLE);
                 return;
             }
 
@@ -1259,9 +1257,9 @@ public final class Game {
             for(int i = 0; i < quantity; i++) {
                 CropID itemCrop;
                 for(CropID c : CropID.values()) {
-                    if(console().equals(c.getName(), item)) {
+                    if(Console.cli.equals(c.getName(), item)) {
                         itemCrop = c;
-                        inventory().add(itemCrop);
+                        player.inventory().add(itemCrop);
                         break;
                     }
                 }
@@ -1270,7 +1268,7 @@ public final class Game {
             for(int i = 0; i < quantity; i++) {
                 Upgrades upgrade;
                 for(Upgrades u : Upgrades.values()) {
-                    if(console().equals(u.name().toLowerCase(), item)) {
+                    if(Console.cli.equals(u.name().toLowerCase(), item)) {
                         upgrade = u;
                         upgrades.add(upgrade);
                         break;
@@ -1281,24 +1279,24 @@ public final class Game {
             for(int i = 0; i < quantity; i++) {
                 Fertilizer fertilizer;
                 for(Fertilizer f : Fertilizer.values()) {
-                    if(console().equals("f." + f.name().toLowerCase(), item)) {
+                    if(Console.cli.equals("f." + f.name().toLowerCase(), item)) {
                         fertilizer = f;
-                        inventory().add(fertilizer);
+                        player.inventory().add(fertilizer);
                         item = "fertilizer." + f.name().toLowerCase();
                         break;
                     }
                 }
             }
 
-            if(console().equals(item, "water")) {
+            if(Console.cli.equals(item, "water")) {
                 water += quantity;
             }
 
-            if(console().equals(item, "gold")) {
+            if(Console.cli.equals(item, "gold")) {
                 player.earn(quantity);
             }
 
-            console().println(Localization.lang.t("game.give.success",
+            Console.cli.println(Localization.lang.t("game.give.success",
                     item, quantity), Console.BRIGHT_GREEN);
             forceEnd();
         }
@@ -1308,13 +1306,13 @@ public final class Game {
      * Shows all items and quantities in the player's inventory.
      */
     private void showInventory() {
-        if(inventory().isEmpty()) {
-            console().error(Localization.lang.t("game.inventory.empty"));
+        if(player.inventory().isEmpty()) {
+            Console.cli.error(Localization.lang.t("game.inventory.empty"));
             return;
         }
 
-        for(Map.Entry<Item, Integer> entry : inventory().getAll().entrySet()) {
-            console().println(entry.getKey().getName() + " x" + entry.getValue(),
+        for(Map.Entry<Item, Integer> entry : player.inventory().getAll().entrySet()) {
+            Console.cli.println(entry.getKey().getName() + " x" + entry.getValue(),
                     Console.PURPLE);
         }
     }
@@ -1325,7 +1323,7 @@ public final class Game {
     private void showTime() {
         int hour = (int) hours;
         int minute = (int) ((hours - hour) * 60);
-        console().println(day + " " + days + " - " + String.format("%02d:%02d", hour, minute),
+        Console.cli.println(day + " " + days + " - " + String.format("%02d:%02d", hour, minute),
                 Console.CYAN);
     }
 
@@ -1354,7 +1352,7 @@ public final class Game {
      */
     @SuppressWarnings("StatementWithEmptyBody")
     private void showStats() {
-        console().println();
+        Console.cli.println();
         StringBuilder sb = new StringBuilder(Localization.lang.t("game.stats"));
         if(isGameOver) {
             sb.append(", Worst Ending");
@@ -1366,17 +1364,17 @@ public final class Game {
             sb.append(", Bad Ending");
         } else {}
 
-        console().println(sb.toString(), Console.PURPLE);
-        for(Map.Entry<Item, Integer> entries : inventory().getAll().entrySet()) {
+        Console.cli.println(sb.toString(), Console.PURPLE);
+        for(Map.Entry<Item, Integer> entries : player.inventory().getAll().entrySet()) {
             totalCrops += entries.getValue();
         }
 
-        console().println(Localization.lang.t("game.stats.cmd_ran", totalCmd), Console.PURPLE);
-        console().println(Localization.lang.t("game.stats.crops", totalCrops), Console.PURPLE);
-        console().println(Localization.lang.t("game.stats.days", days), Console.PURPLE);
-        console().println(Localization.lang.t("game.stats.waterUsed", waterUsed), Console.PURPLE);
-        console().println(Localization.lang.t("game.stats.level", player.level()), Console.PURPLE);
-        console().println(Localization.lang.t("game.stats.coin", player.purse()), Console.PURPLE);
+        Console.cli.println(Localization.lang.t("game.stats.cmd_ran", totalCmd), Console.PURPLE);
+        Console.cli.println(Localization.lang.t("game.stats.crops", totalCrops), Console.PURPLE);
+        Console.cli.println(Localization.lang.t("game.stats.days", days), Console.PURPLE);
+        Console.cli.println(Localization.lang.t("game.stats.waterUsed", waterUsed), Console.PURPLE);
+        Console.cli.println(Localization.lang.t("game.stats.level", player.level()), Console.PURPLE);
+        Console.cli.println(Localization.lang.t("game.stats.coin", player.purse()), Console.PURPLE);
     }
 
     /**
@@ -1384,9 +1382,9 @@ public final class Game {
      * @param args optional command arguments
      */
     private void showHelp(String[] args) {
-        console().println("Available commands:", Console.PURPLE);
+        Console.cli.println("Available commands:", Console.PURPLE);
         for(String cmd : registry.getCommandNames()) {
-            console().println(" - " + cmd, Console.CYAN);
+            Console.cli.println(" - " + cmd, Console.CYAN);
         }
     }
 
@@ -1431,35 +1429,9 @@ public final class Game {
     private void forceEnd() {
         if(Gamerule.isEnabled(Gamerule.ENABLE_PUNISHMENT)) {
             isGameOver = true;
-            console().println(Localization.lang.t("game.end.worst",
+            Console.cli.println(Localization.lang.t("game.end.worst",
                     player.name()),Console.BRIGHT_RED);
             lastCommand = "end";
         }
-    }
-
-    /**
-     * Returns the inventory associated with the current player.
-     * <p>
-     * This method provides convenient access to the player's
-     * {@link Inventory} instance for managing items such as crops,
-     * resources, or other collectibles.
-     * </p>
-     * @return the player's inventory
-     */
-    private Inventory inventory() {
-        return player.inventory();
-    }
-
-    /**
-     * Returns the console service used for input/output operations.
-     * <p>
-     * This method provides access to the shared singleton instance
-     * of {@link Console} used throughout the application for printing
-     * messages and interacting with the command-line interface.
-     * </p>
-     * @return the global console service instance
-     */
-    private Console console() {
-        return Console.cli;
     }
 }

@@ -1,10 +1,8 @@
 package com.soup.game.service;
 
-import com.soup.game.core.Game;
 import com.soup.game.intf.Service;
 
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.Scanner;
 
 /**
  * Provides basic console input/output utilities for the game.
