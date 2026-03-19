@@ -87,7 +87,6 @@ import java.util.function.Consumer;
  * @version 1.9
  * @since 1.0
  */
-@SuppressWarnings("all")
 @World
 public final class Game {
     private static final int MAX_SIZE = 512;
@@ -96,7 +95,6 @@ public final class Game {
     private final Tile[][] tiles;
     private final Barn barn;
     private final Map<Integer, String> market;
-    private final List<Gamerule> gamerules;
     private final List<Upgrades> upgrades;
     private final String day;
 
@@ -131,10 +129,8 @@ public final class Game {
         addCommands();
 
         this.day = Localization.lang.t("game.day");
-        this.gamerules = new ArrayList<>();
         this.upgrades = new ArrayList<>();
         upgrades.add(Upgrades.NULL);
-        addGamerules();
 
         console().println("Farmlet, a terminal farm", Console.PURPLE);
         console().println(Localization.lang.t("game.welcome", player.title()),
@@ -356,13 +352,6 @@ public final class Game {
         console().cmd().put("sleep", this::sleep);
         console().cmd().put("gamerule", this::gamerule);
         console().cmd().put("end", args -> {});
-    }
-
-    /**
-     * Registers all available gamerules
-     */
-    private void addGamerules() {
-        gamerules.addAll(Arrays.asList(Gamerule.values()));
     }
 
     /**
