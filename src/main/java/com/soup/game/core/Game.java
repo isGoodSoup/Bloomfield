@@ -28,7 +28,7 @@ import java.util.Locale;
  *
  * <p><b>Game Features:</b></p>
  * <ul>
- *     <li>Dynamic farm grid of size {@code SIZE} × {@code SIZE}, up to {@value MAX_SIZE}</li>
+ *     <li>Dynamic farm grid of size</li>
  *     <li>Player resource management (coins, water, inventory, XP)</li>
  *     <li>Seasonal and daily weather effects</li>
  *     <li>Crop planting, watering, harvesting, and regrowth</li>
@@ -148,7 +148,7 @@ public final class Game {
      *     <li>Displays the game ending message based on the number of days
      *         the player survived using {@link #showEnding()}.</li>
      *     <li>Shows the final game statistics for the player via
-     *         {@link com.soup.game.service.Stats#showStats(com.soup.game.ent.Player)}.</li>
+     *         {@link Stats#showStats(Player)}.</li>
      * </ol>
      * <p>
      * It is called once when the game is initialized to run the simulation

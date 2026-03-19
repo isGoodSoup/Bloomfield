@@ -65,7 +65,7 @@ public class Executor implements Command {
     private final Player player;
     private final Parser parser;
     private final Registry registry;
-    private String lastCommand;
+    private String lastCommand = "foo";
     private String[] previousArgs;
     private int totalCmd;
 
@@ -89,10 +89,10 @@ public class Executor implements Command {
         String line;
         do {
             line = Console.cli.reply("").trim();
-            if(!Console.cli.equals(line, ";")) {
+            if(!Console.cli.equals(line, ";") || line.endsWith(";")) {
                 script.append(line).append("\n");
             }
-        } while(!Console.cli.equals(line, ";"));
+        } while(!Console.cli.equals(line, ";") || !line.endsWith(";"));
 
         String[] lines = script.toString().split("\\R");
         for(String l : lines) {
@@ -181,6 +181,9 @@ public class Executor implements Command {
             }
 
             Object rawTimes = getVar(tokens[pos + 1]);
+            if(rawTimes == null) {
+                rawTimes = tokens[pos + 1];
+            }
             int nestedTimes;
 
             if(rawTimes instanceof Number) {
@@ -296,7 +299,8 @@ public class Executor implements Command {
      * @return the stored value of the variable, or the input name if not found
      */
     private Object getVar(String name) {
-        return registry.getVariable(name);
+        Object val = registry.getVariable(name);
+        return val != null ? val : name;
     }
 
     /**
