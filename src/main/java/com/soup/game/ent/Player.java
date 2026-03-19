@@ -36,7 +36,7 @@ public class Player {
         this.inventory = new Inventory();
         this.level = 1;
         this.experience = 0;
-        this.nextLevel = 0;
+        this.nextLevel = 16;
         this.coin = 0;
     }
 
@@ -46,13 +46,17 @@ public class Player {
      * @param experience is the amount of updated experience
      */
     public void update(int experience) {
-        if(this.experience > nextLevel) {
+        add(experience);
+        while(this.experience >= nextLevel) {
+            this.experience -= nextLevel;
             levelUp();
-            Console.cli.println(Localization.lang.t("player.levelup", level), Console.BRIGHT_GREEN);
+            nextLevel = level * 10;
+
+            Console.cli.println(Localization.lang.t("player.levelup", level),
+                    Console.BRIGHT_GREEN);
         }
         Console.cli.println(Localization.lang.t("player.gainxp", experience,
-                nextLevel - experience), Console.GREEN);
-        add(experience);
+                        nextLevel - this.experience), Console.BRIGHT_GREEN);
     }
 
     /**
@@ -112,15 +116,6 @@ public class Player {
      */
     public void add(int experience) {
         this.experience += experience;
-        nextLevel -= this.experience;
-    }
-
-    /**
-     * Calculates and returns the experience required for the next level.
-     * @return the experience points needed to reach the next level
-     */
-    public int levelNext() {
-        return nextLevel = (level * experience) / 2;
     }
 
     /**

@@ -111,6 +111,7 @@ public final class Game {
     private String lastCommand = "foo";
 
     private int totalCmd;
+    private int totalCrops;
     private float waterUsed;
     private boolean isGameOver;
 
@@ -153,6 +154,7 @@ public final class Game {
      */
     private void start() {
         days = 0;
+        totalCrops = 0;
         totalCmd = 0;
         loop();
         showEnding();
@@ -233,10 +235,10 @@ public final class Game {
             season();
             weather();
             update();
-            barn.update();
             hours = 6f;
             do {
                 run();
+                barn.update();
                 hours += 0.2f;
                 if(hours >= HOURS || doSleep(lastCommand)) {
                     hours = 0f;
@@ -255,7 +257,7 @@ public final class Game {
      * terminating semicolon (";") is entered or a command triggers a sleep condition.
      * Commands can be chained using "&&"; each command is looked up in the console's
      * command map and executed if found. Unknown commands are reported in red. Updates
-     * {@code totalCmd} and {@code lastCommand} for each executed command.
+     * {@link #totalCmd} and {@link #lastCommand} for each executed command.
      *
      * @see #doSleep(String)
      * @see Console#cmd()
@@ -277,6 +279,7 @@ public final class Game {
                 cmd = cmd.trim();
                 if(cmd.isEmpty()) { continue; }
                 String[] tokens = tokenize(cmd);
+                totalCmd++;
                 execute(tokens, 0, new LinkedHashMap<>(), 0);
             }
         }
@@ -599,7 +602,6 @@ public final class Game {
 
         Consumer<String[]> action = console().cmd().get(token);
         if(action == null) {
-            console().println(Localization.lang.t("game.cmd.unknown", token), Console.RED);
             return;
         }
 
@@ -1571,7 +1573,7 @@ public final class Game {
 
         console().println(Localization.lang.t("game.give.success",
                 item, quantity), Console.BRIGHT_GREEN);
-//        forceEnd();
+        forceEnd();
     }
 
     /**
@@ -1622,6 +1624,7 @@ public final class Game {
      * </ul>
      * </p>
      */
+    @SuppressWarnings("StatementWithEmptyBody")
     private void showStats() {
         console().println();
         StringBuilder sb = new StringBuilder(Localization.lang.t("game.stats"));
@@ -1633,10 +1636,9 @@ public final class Game {
             sb.append(", Good Ending");
         } else if(days < 15) {
             sb.append(", Bad Ending");
-        }
+        } else {}
 
         console().println(sb.toString(), Console.PURPLE);
-        int totalCrops = 0;
         for(Map.Entry<Item, Integer> entries : inventory().getAll().entrySet()) {
             totalCrops += entries.getValue();
         }
