@@ -122,6 +122,9 @@ public abstract class Animal {
     private boolean isAlive;
     private boolean wasFed;
 
+    private boolean wasHungryMessageSent = false;
+    private boolean wasUnhappyMessageSent = false;
+
     public Animal(String name, Sex sex, AnimalType animalType) {
         this.name = name;
         this.animalType = animalType;
@@ -283,13 +286,23 @@ public abstract class Animal {
             }
         }
         if(happiness < 20) {
-            panel().append(Localization.lang.t("animal.unhappy", getName(),
-                            getLocalizedName()), Colors.BLUE);
+            if(!wasUnhappyMessageSent) {
+                panel().append(Localization.lang.t("animal.unhappy" + "\n", getName(),
+                        getLocalizedName()), Colors.BRIGHT_PURPLE);
+                wasUnhappyMessageSent = true;
+            }
+        } else {
+            wasUnhappyMessageSent = false;
         }
 
         if(hunger > 60 || !wasFed || meals >= 2) {
-            panel().append(Localization.lang.t("animal.hungry", getName(),
-                            getLocalizedName()), Colors.BRIGHT_RED);
+            if(!wasHungryMessageSent) {
+                panel().append(Localization.lang.t("animal.hungry" + "\n", getName(),
+                        getLocalizedName()), Colors.BRIGHT_RED);
+                wasHungryMessageSent = true;
+            }
+        } else {
+            wasHungryMessageSent = false;
         }
         sleep();
     }
