@@ -103,14 +103,14 @@ public class SwingPanel extends JPanel {
 
         try {
             InputStream is = getClass().getResourceAsStream("/fonts/JetBrainsMonoSemiBold.ttf");
-            font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(24f);
+            font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(16f);
             gameLog.setFont(font);
         } catch (Exception e) {
             log.error("{}", e.getMessage());
-            gameLog.setFont(new Font("Monospaced", Font.PLAIN, 24));
+            gameLog.setFont(new Font("Monospaced", Font.PLAIN, 16));
         }
 
-        final int PADDING = 20;
+        final int PADDING = 32;
         gameLog.setEditable(false);
         gameLog.setFont(font);
         gameLog.setBackground(Color.BLACK);
@@ -143,8 +143,13 @@ public class SwingPanel extends JPanel {
         });
     }
 
+    /**
+     * Echoes the command input
+     * @param command the command
+     * @param color the echoed command's color
+     */
     private void process(String command, Color color) {
-        append("$ " + command + "\n", color);
+        append("\n" + "$ " + command + "\n", color);
     }
 
     /**
