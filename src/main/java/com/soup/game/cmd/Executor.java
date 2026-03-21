@@ -175,7 +175,6 @@ public class Executor implements Command {
      * @see #replace(String[], Map)
      */
     private void execute(String[] tokens, int pos, Map<String, Integer> indices, int depth) {
-        log.debug("Executing action");
         if(pos >= tokens.length) { return; }
         String token = tokens[pos];
 
