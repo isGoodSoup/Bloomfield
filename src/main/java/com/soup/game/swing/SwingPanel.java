@@ -83,7 +83,7 @@ public class SwingPanel extends JPanel {
     private final JScrollPane scrollPane;
     private final JTextPane gameLog;
     private final JTextField inputField;
-    private final Queue<Runnable> queue = new LinkedList<>();
+    private final Queue<Runnable> queue;
     private Font font;
     private CommandListener listener;
 
@@ -100,6 +100,7 @@ public class SwingPanel extends JPanel {
         this.gameLog = new JTextPane();
         this.scrollPane = new JScrollPane(gameLog);
         this.inputField = new JTextField();
+        this.queue = new LinkedList<>();
         setLayout(new BorderLayout());
 
         try {
