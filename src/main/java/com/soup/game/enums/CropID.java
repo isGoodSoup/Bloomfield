@@ -21,12 +21,12 @@ public enum CropID implements Item {
     WHEAT(Seasons.SPRING, "crop.wheat", 8, 5, 4, 2, true),
     CABBAGE(Seasons.AUTUMN, "crop.cabbage", 8, 10, 6, 4, false),
     CORN(Seasons.WINTER, "crop.corn", 16, 15, 6, 6, false),
-    CARROT(Seasons.SPRING, "crop.carrot", 8, 20, 10, 8, false),
+    CARROT(Seasons.SPRING, "crop.carrot", 8, 15, 10, 8, false),
     POTATO(Seasons.WINTER, "crop.potato", 16, 15, 12, 10, true),
     TOMATO(Seasons.SUMMER, "crop.tomato", 16, 15, 12, 12, true),
     STRAWBERRY(Seasons.SUMMER, "crop.strawberry", 10, 16, 16, 14, true),
-    APPLE(Seasons.SPRING, "crop.apple", 32, 20, 16, 16, false),
-    GRAPE(Seasons.WINTER, "crop.grape", 16, 25, 24, 18, false),
+    APPLE(Seasons.SPRING, "crop.apple", 32, 15, 16, 16, false),
+    GRAPE(Seasons.WINTER, "crop.grape", 16, 15, 24, 18, false),
     PUMPKIN(Seasons.AUTUMN, "crop.pumpkin", 32, 25, 32, 20, true);
 
     public static final CropID id = CropID.WHEAT;
