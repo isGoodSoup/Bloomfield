@@ -141,10 +141,8 @@ public class GameLoop implements CommandListener {
             log.debug("Command executed: {}", command);
         }
 
-        Quest quest;
         if(Math.random() > 0.85 && questLog.isEmpty()) {
-            quest = createQuest();
-            questLog.add(quest);
+            // TODO
         }
 
         env.advanceTime(TIME_INCREMENT);
@@ -260,16 +258,6 @@ public class GameLoop implements CommandListener {
             sb.append("\n");
         }
         panel.append(sb.toString(), color);
-    }
-
-    private Quest createQuest() {
-        long id = System.currentTimeMillis();
-        NPC npc = NPCFactory.factory.query();
-        QuestType type = QuestType.getRandomQuest();
-        int reward = (int) (Math.random() * 100);
-        int requirement = (int) (Math.random() * 10);
-        return new Quest(id, npc, type, reward,
-                requirement, Item.random(), random.nextBoolean());
     }
 
     /**
