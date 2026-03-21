@@ -139,8 +139,10 @@ public class SwingPanel extends JPanel {
             inputField.setText("");
             process(command, color);
             if(listener != null) {
-                SwingUtilities.invokeLater(() ->
-                        listener.onCommand(command));
+                SwingUtilities.invokeLater(() -> {
+                            log.info("Ran= {}", command);
+                            listener.onCommand(command);
+                        });
             }
         });
     }

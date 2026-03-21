@@ -89,7 +89,7 @@ public class Market {
         }
         player.earn(totalCoin);
         log.info("Selling all crops for {} gold", totalCoin);
-        panel.append(Localization.lang.t("game.sold", totalCoin), Colors.YELLOW);
+        panel.append(Localization.lang.t("game.sold", totalCoin), Colors.BRIGHT_YELLOW);
     }
 
     /**
